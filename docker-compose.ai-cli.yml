@@ -1,0 +1,108 @@
+services:
+  ai-cli:
+    build:
+      context: .
+      dockerfile: Dockerfile.ai-cli
+      args:
+        USER: ${CONTAINER_USER:-ai}
+        USER_UID: ${USER_UID:-1001}
+        USER_GID: ${USER_GID:-1001}
+    image: ai-cli-env:latest
+    container_name: ai-cli-${AI_ACCOUNT:-default}
+
+    # Security settings
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETGID
+      - SETUID
+
+
+    # Working directory
+    working_dir: /home/${CONTAINER_USER:-ai}/code
+
+    volumes:
+      # Mount current project directory
+      - ${PWD}:/home/${CONTAINER_USER:-ai}/code:rw
+
+      # AI CLI configurations from host
+      - ${HOME}/.claude:/home/${CONTAINER_USER:-ai}/.claude:rw
+      - ${HOME}/.codex:/home/${CONTAINER_USER:-ai}/.codex:rw
+      - ${HOME}/.gemini:/home/${CONTAINER_USER:-ai}/.gemini:rw
+
+      # SSH keys for git operations (read-only)
+      - ${SSH_KEY_PATH:-~/.ssh}:/home/${CONTAINER_USER:-ai}/.ssh:ro
+
+      # Git global ignore file (read-only)
+      - ${HOME}/.gitignore_global:/home/${CONTAINER_USER:-ai}/.gitignore_global:ro
+
+      # ccstatusline configuration (optional)
+      - ${HOME}/.config/ccstatusline:/home/${CONTAINER_USER:-ai}/.config/ccstatusline:ro
+
+    environment:
+      # AI CLI environment variables
+      - AI_ACCOUNT=${AI_ACCOUNT:-default}
+      - AI_CLI=${AI_CLI:-claude}
+      - USER=${CONTAINER_USER:-ai}
+      - CONTAINER_USER=${CONTAINER_USER:-ai}
+      - USER_UID=${USER_UID:-1001}
+      - USER_GID=${USER_GID:-1001}
+      - WORK_DIR=/home/${CONTAINER_USER:-ai}/code
+
+      # CLI config directories
+      - CLAUDE_CONFIG_DIR=/home/${CONTAINER_USER:-ai}/.claude
+      - HOME=/home/${CONTAINER_USER:-ai}
+
+      # SSH key configuration
+      - SSH_KEY_FILE=${SSH_KEY_FILE:-}
+
+      # Terminal settings
+      - TERM=xterm-256color
+
+      # Project-specific environment variables
+    env_file:
+      - ${ENV_FILE:-.env.local}
+      - .ai-cli-env.${AI_ACCOUNT:-default}
+
+    # Network settings
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    networks:
+      - ai-network
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 4G
+        reservations:
+          cpus: "1"
+          memory: 2G
+
+    # Keep container running
+    stdin_open: true
+    tty: true
+
+    # Restart policy
+    restart: "no"
+
+    # Command to keep container running
+    command: tail -f /dev/null
+
+# Named volumes for persistence
+volumes:
+  # Account-specific configuration (dynamically named)
+  ai-config:
+    name: ai-config-${AI_ACCOUNT:-default}
+
+# Network for isolation
+networks:
+  ai-network:
+    driver: bridge
