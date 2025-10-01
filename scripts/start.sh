@@ -222,27 +222,21 @@ elif [ -d "$HOME/.ssh" ]; then
     export SSH_KEY_PATH="$HOME/.ssh"
 fi
 
-# Check for project environment file (.env.local by default)
-DEFAULT_ENV_FILE="${PROJECT_ROOT}/.env.local"
+# Check for project environment file (optional)
 if [ -z "$ENV_FILE" ]; then
-    # ENV_FILE not specified, check if default exists
-    if [ ! -f "$DEFAULT_ENV_FILE" ]; then
-        echo -e "❌ ${RED}Error: .env.local not found at ${DEFAULT_ENV_FILE}${NC}"
-        echo ""
-        echo -e "🚀 ${YELLOW}If you want to load a different env file, please execute:${NC}"
-        echo -e "${GREEN}  ENV_FILE=.env aibox [OPTIONS]${NC}"
-        echo -e "${GREEN}  ENV_FILE=.env.production aibox [OPTIONS]${NC}"
-        echo -e "${GREEN}  ENV_FILE=.env.test aibox [OPTIONS]${NC}"
-        echo ""
-        echo -e "💡 ${YELLOW}Available env files in project:${NC}"
-        ls -la "${PROJECT_ROOT}"/.env* 2>/dev/null | grep -v ".env.example\|.claude-env" | awk '{print "  " $9}' || echo "  None found"
-        echo ""
-        echo -e "👉 ${YELLOW}To create .env.local from example:${NC}"
-        echo -e "${GREEN}  cp ${PROJECT_ROOT}/.env.example ${DEFAULT_ENV_FILE}${NC}"
-        exit 1
+    # ENV_FILE not specified, try to find one (in order of priority)
+    if [ -f "${PROJECT_ROOT}/.env.local" ]; then
+        export ENV_FILE=".env.local"
+        echo -e "📝 ${GREEN}Using environment file: .env.local${NC}"
+    elif [ -f "${PROJECT_ROOT}/.env" ]; then
+        export ENV_FILE=".env"
+        echo -e "📝 ${GREEN}Using environment file: .env${NC}"
+    else
+        # No env file found, use /dev/null (docker-compose will ignore it)
+        export ENV_FILE="/dev/null"
     fi
 else
-    # ENV_FILE specified, check if it exists
+    # ENV_FILE explicitly specified, check if it exists
     SPECIFIED_ENV_FILE="${PROJECT_ROOT}/${ENV_FILE}"
     if [ ! -f "$SPECIFIED_ENV_FILE" ]; then
         echo -e "❌ ${RED}Error: Specified env file not found: ${SPECIFIED_ENV_FILE}${NC}"
@@ -252,6 +246,7 @@ else
         exit 1
     fi
     export ENV_FILE
+    echo -e "📝 ${GREEN}Using environment file: ${ENV_FILE}${NC}"
 fi
 
 # Check for account-specific env file
