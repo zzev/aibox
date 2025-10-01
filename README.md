@@ -29,10 +29,10 @@ A secure, isolated Docker environment for running multiple AI command-line tools
 
 ```bash
 # Install globally
-npm install -g aibox
+npm install -g @zzev/aibox
 
 # Or use with npx (no installation needed)
-npx aibox
+npx @zzev/aibox
 ```
 
 **Option 2: Install from GitHub**
