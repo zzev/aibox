@@ -257,28 +257,90 @@ AI_ENV_FILE="${AIBOX_PROFILES_DIR}/${AI_ACCOUNT}.env"
 # Create profiles directory if it doesn't exist
 mkdir -p "$AIBOX_PROFILES_DIR" 2>/dev/null
 
-# Check if profile exists, create from template if not
+# Check if profile exists, create with interactive setup if not
 if [ ! -f "$AI_ENV_FILE" ]; then
-    # Try to create from example template
-    if [ -f "${INSTALL_DIR}/.aibox-env.example" ]; then
-        cp "${INSTALL_DIR}/.aibox-env.example" "${AI_ENV_FILE}"
-        # Update the account name in the created file
-        sed -i.bak "s/AI_ACCOUNT=default/AI_ACCOUNT=${AI_ACCOUNT}/" "${AI_ENV_FILE}" && rm "${AI_ENV_FILE}.bak" 2>/dev/null || true
+    echo -e "${YELLOW}Profile '${AI_ACCOUNT}' not found. Let's set it up!${NC}"
+    echo ""
+
+    # Try to get Git config from host first
+    host_git_name=$(git config --global user.name 2>/dev/null || echo "")
+    host_git_email=$(git config --global user.email 2>/dev/null || echo "")
+
+    # Get Git author name
+    if [ -n "$host_git_name" ]; then
+        read -p "Git author name [$host_git_name]: " git_name
+        git_name=${git_name:-"$host_git_name"}
     else
-        # Create minimal profile
-        cat > "${AI_ENV_FILE}" <<EOF
+        read -p "Git author name (for commits): " git_name
+        git_name=${git_name:-"Your Name"}
+    fi
+
+    # Get Git author email
+    if [ -n "$host_git_email" ]; then
+        read -p "Git author email [$host_git_email]: " git_email
+        git_email=${git_email:-"$host_git_email"}
+    else
+        read -p "Git author email: " git_email
+        git_email=${git_email:-"your.email@example.com"}
+    fi
+
+    # Get preferred AI CLI
+    echo ""
+    echo "Choose your preferred AI CLI:"
+    echo "  1) claude (default)"
+    echo "  2) codex"
+    echo "  3) gemini"
+    while true; do
+        read -p "Choice [1-3]: " cli_choice
+        case "$cli_choice" in
+            1|"") ai_cli="claude"; break ;;
+            2) ai_cli="codex"; break ;;
+            3) ai_cli="gemini"; break ;;
+            *) echo -e "${RED}Invalid choice. Please enter 1, 2, or 3.${NC}" ;;
+        esac
+    done
+
+    # SSH Key configuration
+    echo ""
+    read -p "SSH key directory [~/.ssh]: " ssh_path
+    ssh_path=${ssh_path:-"~/.ssh"}
+
+    read -p "SSH key file [id_rsa]: " ssh_file
+    ssh_file=${ssh_file:-"id_rsa"}
+
+    # GitHub token (optional)
+    echo ""
+    read -p "GitHub CLI token (optional, press enter to skip): " gh_token
+
+    # Create profile file
+    cat > "${AI_ENV_FILE}" <<EOF
 # aibox Profile: ${AI_ACCOUNT}
 AI_ACCOUNT=${AI_ACCOUNT}
-AI_CLI=claude
+AI_CLI=${ai_cli}
 CONTAINER_USER=ai
 
-# Git Configuration (for commits made by AI tools)
-GIT_AUTHOR_NAME=Your Name
-GIT_AUTHOR_EMAIL=your.email@example.com
-GIT_COMMITTER_NAME=Your Name
-GIT_COMMITTER_EMAIL=your.email@example.com
+# Git Configuration
+GIT_AUTHOR_NAME=${git_name}
+GIT_AUTHOR_EMAIL=${git_email}
+GIT_COMMITTER_NAME=${git_name}
+GIT_COMMITTER_EMAIL=${git_email}
+
+# SSH Configuration
+SSH_KEY_PATH=${ssh_path}
+SSH_KEY_FILE=${ssh_file}
 EOF
+
+    # Add GitHub token if provided
+    if [ -n "$gh_token" ]; then
+        echo "" >> "${AI_ENV_FILE}"
+        echo "# GitHub CLI" >> "${AI_ENV_FILE}"
+        echo "GH_TOKEN=${gh_token}" >> "${AI_ENV_FILE}"
     fi
+
+    echo ""
+    echo -e "${GREEN}✅ Profile '${AI_ACCOUNT}' created successfully!${NC}"
+    echo -e "   Location: ${AI_ENV_FILE}"
+    echo ""
 fi
 
 export AI_ENV_FILE
@@ -344,8 +406,12 @@ if [ "$ATTACH_MODE" = true ]; then
 fi
 
 # Display account info
-AI_CLI_UPPER=$(echo "$AI_CLI" | tr '[:lower:]' '[:upper:]')
-echo -e "🤖 Using ${AI_CLI_UPPER} CLI with account: ${GREEN}${AI_ACCOUNT}${NC}"
+if [ "$INTERACTIVE_SHELL" = true ]; then
+    echo -e "🤖 Account: ${GREEN}${AI_ACCOUNT}${NC}"
+else
+    AI_CLI_UPPER=$(echo "$AI_CLI" | tr '[:lower:]' '[:upper:]')
+    echo -e "🤖 Using ${AI_CLI_UPPER} CLI with account: ${GREEN}${AI_ACCOUNT}${NC}"
+fi
 echo -e "⚙️  Running in: ${GREEN}${PROJECT_ROOT}${NC}"
 echo ""
 
