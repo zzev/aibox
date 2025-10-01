@@ -2,6 +2,8 @@
 
 A secure, isolated Docker environment for running multiple AI command-line tools (Claude Code, Codex, and Gemini) with multi-account support and comprehensive security features.
 
+**Optimized for Node.js/JavaScript projects** - Built on Node.js 20 Alpine, includes npm, and common development tools for modern JavaScript/TypeScript development.
+
 ## 🚀 Features
 
 - **Multi-CLI Support**: Run Claude Code, Codex, or Gemini CLI from a single unified container
@@ -291,6 +293,25 @@ ssh -T git@github.com
 # Ensure host directories are accessible
 ls -la ~/.claude ~/.codex ~/.gemini
 ```
+
+## 🆚 aibox vs devcontainers
+
+While both use Docker for isolated development, they serve different purposes:
+
+| Feature | aibox | devcontainers |
+|---------|-------|---------------|
+| **Purpose** | Run AI CLIs securely with multi-account support | Full development environment in container |
+| **Setup** | Single global installation via npm | Per-project `.devcontainer` configuration |
+| **Usage** | CLI-first: `aibox` command from any project | IDE-integrated: requires VS Code/supported editor |
+| **Configuration** | Reusable across all projects | Project-specific configuration |
+| **AI Account Management** | Native multi-account support | Manual configuration per project |
+| **Config Persistence** | Direct host mapping (`~/.claude`, etc.) | Volumes or per-project setup |
+| **Complexity** | Minimal: one command to start | Higher: JSON config, IDE integration |
+| **Best for** | Quick AI CLI access, multiple AI accounts, JS projects | Full-stack development, polyglot projects, team standardization |
+
+**Use aibox when**: You want instant AI CLI access across projects without per-project configuration.
+
+**Use devcontainers when**: You need a fully customized development environment with IDE integration.
 
 ## 🤝 Contributing
 
