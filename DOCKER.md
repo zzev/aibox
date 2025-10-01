@@ -1,4 +1,4 @@
-# AI CLI Docker Environment
+# aibox
 
 A secure Docker environment for running multiple AI CLIs (Claude Code, Codex, and Gemini) with isolation from the host system and support for multiple accounts.
 
@@ -23,11 +23,11 @@ A secure Docker environment for running multiple AI CLIs (Claude Code, Codex, an
 
 ```bash
 # Build the Docker image (required on first use)
-./scripts/start.sh --build
+aibox --build
 
-# The script will automatically create .ai-cli-env.default from .ai-cli-env.example if needed
+# The script will automatically create .aibox-env.default from .aibox-env.example if needed
 # Edit your environment file if needed
-nano .ai-cli-env.default
+nano .aibox-env.default
 ```
 
 **Note**: The build process will automatically create the necessary directories and set up permissions.
@@ -36,33 +36,33 @@ nano .ai-cli-env.default
 
 ```bash
 # Default: Opens interactive bash shell
-./scripts/start.sh
+aibox
 
 # Run Claude Code directly
-./scripts/start.sh --dangerously-skip-permissions
+aibox --dangerously-skip-permissions
 
 # Run Codex directly (executes codex CLI)
-./scripts/start.sh -t codex
+aibox -t codex
 
 # Run Gemini directly (executes gemini CLI)
-./scripts/start.sh -t gemini
+aibox -t gemini
 
 # Run specific CLI with arguments
-./scripts/start.sh -t codex help
-./scripts/start.sh -t gemini chat "Hello"
+aibox -t codex help
+aibox -t gemini chat "Hello"
 
 # Clean orphan containers before running
-./scripts/start.sh --clean
+aibox --clean
 
 # Attach to existing running container
-./scripts/start.sh --attach
+aibox --attach
 ```
 
 ### 3. Interactive Shell
 
 ```bash
 # By default, the script opens an interactive shell
-./scripts/start.sh
+aibox
 
 # Inside the container, you can run any CLI
 claude --dangerously-skip-permissions
@@ -76,20 +76,20 @@ The container includes all three AI CLIs. Choose which one to run:
 
 ```bash
 # Claude Code with arguments
-./scripts/start.sh --dangerously-skip-permissions
-./scripts/start.sh chat "Help me understand this codebase"
+aibox --dangerously-skip-permissions
+aibox chat "Help me understand this codebase"
 
 # Codex CLI - executes codex directly
-./scripts/start.sh -t codex
-./scripts/start.sh -t codex help
+aibox -t codex
+aibox -t codex help
 
 # Gemini CLI - executes gemini directly
-./scripts/start.sh -t gemini
-./scripts/start.sh -t gemini chat "Hello"
+aibox -t gemini
+aibox -t gemini chat "Hello"
 
 # Or use environment variable
-AI_CLI=codex ./scripts/start.sh
-AI_CLI=gemini ./scripts/start.sh
+AI_CLI=codex aibox
+AI_CLI=gemini aibox
 ```
 
 Each CLI uses its own configuration directory:
@@ -105,16 +105,16 @@ Create and use different accounts for different projects:
 
 ```bash
 # Create a work account
-cp .ai-cli-env.example .ai-cli-env.work
-# Edit .ai-cli-env.work with work-specific settings
+cp .aibox-env.example .aibox-env.work
+# Edit .aibox-env.work with work-specific settings
 
 # Create a personal account
-cp .ai-cli-env.example .ai-cli-env.personal
-# Edit .ai-cli-env.personal with personal settings
+cp .aibox-env.example .aibox-env.personal
+# Edit .aibox-env.personal with personal settings
 
 # Use specific accounts
-./scripts/start.sh -a work -t codex
-./scripts/start.sh -a personal --dangerously-skip-permissions
+aibox -a work -t codex
+aibox -a personal --dangerously-skip-permissions
 ```
 
 Each account maintains its own:
@@ -125,7 +125,7 @@ Each account maintains its own:
 ## Command Options
 
 ```bash
-./scripts/start.sh [OPTIONS] [CLI_ARGS]
+aibox [OPTIONS] [CLI_ARGS]
 
 OPTIONS:
   -t, --type TYPE        Choose CLI type: claude, codex, gemini (default: claude)
@@ -143,20 +143,20 @@ OPTIONS:
 
 ```
 .
-├── Dockerfile.ai-cli           # Docker image definition
-├── docker-compose.ai-cli.yml   # Docker Compose configuration (single service)
+├── Dockerfile                  # Docker image definition
+├── docker-compose.yml          # Docker Compose configuration (single service)
 ├── scripts/
 │   ├── start.sh                # Wrapper script
 │   └── docker-entrypoint.sh    # Container entrypoint with git config and SSH fix
-├── .ai-cli-env.example         # Environment template
-├── .ai-cli-env.default         # Default account settings (auto-created from example)
-├── .ai-cli-env.work           # Work account settings (optional)
-└── .ai-cli-env.personal       # Personal account settings (optional)
+├── .aibox-env.example          # Environment template
+├── .aibox-env.default          # Default account settings (auto-created from example)
+├── .aibox-env.work             # Work account settings (optional)
+└── .aibox-env.personal         # Personal account settings (optional)
 ```
 
 ## Environment Variables
 
-Key environment variables in `.ai-cli-env.*` files:
+Key environment variables in `.aibox-env.*` files:
 
 - `AI_ACCOUNT`: Account identifier (default: default)
 - `AI_CLI`: CLI type to use (claude, codex, or gemini)
@@ -177,19 +177,19 @@ You can specify which `.env` file to load for your project:
 
 ```bash
 # Use default .env.local file
-./scripts/start.sh
+aibox
 
 # Use .env file
-ENV_FILE=.env ./scripts/start.sh
+ENV_FILE=.env aibox
 
 # Use .env.production
-ENV_FILE=.env.production ./scripts/start.sh -t codex
+ENV_FILE=.env.production aibox -t codex
 
 # Use .env.staging
-ENV_FILE=.env.staging ./scripts/start.sh -t gemini
+ENV_FILE=.env.staging aibox -t gemini
 
 # Use .env.test
-ENV_FILE=.env.test ./scripts/start.sh
+ENV_FILE=.env.test aibox
 ```
 
 **Note:** By default, the script looks for `.env.local`. If it doesn't exist, you'll see an error message with instructions on how to specify a different env file.
@@ -200,13 +200,13 @@ SSH keys are automatically mounted from your host system:
 
 ```bash
 # Use default SSH keys (mounts ~/.ssh directory)
-./scripts/start.sh
+aibox
 
 # Use specific SSH key for work account
-SSH_KEY_FILE=id_rsa_work ./scripts/start.sh -a work -t codex
+SSH_KEY_FILE=id_rsa_work aibox -a work -t codex
 
 # Combine with environment file specification
-SSH_KEY_FILE=id_rsa_work ENV_FILE=.env.production ./scripts/start.sh
+SSH_KEY_FILE=id_rsa_work ENV_FILE=.env.production aibox
 ```
 
 **How it works:**
@@ -244,8 +244,8 @@ The following data persists across container restarts (mapped from host):
 ## Container Naming
 
 Containers are named based on the account only (not CLI type):
-- Format: `ai-cli-{AI_ACCOUNT}`
-- Examples: `ai-cli-default`, `ai-cli-work`, `ai-cli-personal`
+- Format: `aibox-{AI_ACCOUNT}`
+- Examples: `aibox-default`, `aibox-work`, `aibox-personal`
 
 This means the same container is reused regardless of which CLI you run. You can switch between Claude, Codex, and Gemini using the same container, which is more efficient and avoids container proliferation.
 
@@ -255,16 +255,16 @@ This means the same container is reused regardless of which CLI you run. You can
 
 ```bash
 # Clean orphan containers before running
-./scripts/start.sh --clean
+aibox --clean
 
-# List all AI CLI containers
-docker ps -a --filter "name=ai-cli"
+# List all aibox containers
+docker ps -a --filter "name=aibox"
 
 # Attach to existing container
-./scripts/start.sh --attach
+aibox --attach
 
 # Force temporary container (auto-removed on exit)
-./scripts/start.sh -r
+aibox -r
 ```
 
 ### Docker not installed
@@ -278,29 +278,29 @@ docker ps -a --filter "name=ai-cli"
 ```bash
 # The container runs as ai user (UID 1001)
 # If you still have issues, rebuild the image:
-./scripts/start.sh --build
+aibox --build
 
 # Then run normally:
-./scripts/start.sh
+aibox
 ```
 
 ### Container won't start
 
 ```bash
 # Force rebuild the image (clean build)
-docker-compose -f docker-compose.ai-cli.yml build --no-cache
+docker-compose build --no-cache
 
 # Or use the script:
-./scripts/start.sh --build
+aibox --build
 
 # Check Docker logs
-docker logs ai-cli-default
-docker logs ai-cli-work
-docker logs ai-cli-personal
+docker logs aibox-default
+docker logs aibox-work
+docker logs aibox-personal
 
 # Remove and rebuild if needed
-docker-compose -f docker-compose.ai-cli.yml down
-./scripts/start.sh --build
+docker-compose down
+aibox --build
 ```
 
 ### Git operations failing
@@ -310,7 +310,7 @@ docker-compose -f docker-compose.ai-cli.yml down
 ls -la ~/.ssh  # Check host keys exist
 
 # In container, verify keys are accessible
-./scripts/start.sh
+aibox
 ls -la /home/ai/.ssh
 
 # The container automatically handles macOS SSH config issues
@@ -331,11 +331,11 @@ If you're on macOS, your SSH config likely contains `UseKeychain` options that a
 The container automatically configures git with your environment variables on startup. If commits still show the wrong author:
 
 ```bash
-# Check your .ai-cli-env.* file has the correct values
-cat .ai-cli-env.default | grep GIT_
+# Check your .aibox-env.* file has the correct values
+cat .aibox-env.default | grep GIT_
 
 # Inside the container, verify git configuration
-./scripts/start.sh
+aibox
 git config --global user.name
 git config --global user.email
 
@@ -361,16 +361,16 @@ export USER_UID=1001
 export USER_GID=1001
 
 # Build with custom settings
-./scripts/start.sh --build
+aibox --build
 
 # Run with custom settings
-./scripts/start.sh
+aibox
 ```
 
-Or add them to your `.ai-cli-env.*` file:
+Or add them to your `.aibox-env.*` file:
 
 ```bash
-# .ai-cli-env.custom
+# .aibox-env.custom
 AI_ACCOUNT=custom
 AI_CLI=claude
 CONTAINER_USER=developer
@@ -382,7 +382,7 @@ USER_GID=1001
 
 If AI CLIs need to interact with Docker:
 
-1. Uncomment in `docker-compose.ai-cli.yml`:
+1. Uncomment in `docker-compose.yml`:
 
 ```yaml
 - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -392,7 +392,7 @@ If AI CLIs need to interact with Docker:
 
 ### Custom Resource Limits
 
-Edit `docker-compose.ai-cli.yml`:
+Edit `docker-compose.yml`:
 
 ```yaml
 deploy:
@@ -406,15 +406,15 @@ deploy:
 
 ```bash
 # Non-interactive mode with auto-remove
-./scripts/start.sh -r -a ci -t claude analyze src/
-./scripts/start.sh -r -a ci -t codex
+aibox -r -a ci -t claude analyze src/
+aibox -r -a ci -t codex
 ```
 
 ## Best Practices
 
 1. **Use accounts**: Separate work/personal/client projects
 2. **Choose the right CLI**: Use `-t` flag or `AI_CLI` environment variable
-3. **Environment consistency**: Keep `.ai-cli-env.*` files in `.gitignore`
+3. **Environment consistency**: Keep `.aibox-env.*` files in `.gitignore`
 4. **Regular updates**: Rebuild image periodically for updates
 5. **Monitor resources**: Check Docker stats for resource usage
 6. **Container management**: Uses docker-compose for simplified container lifecycle
@@ -423,15 +423,15 @@ deploy:
 
 ```bash
 # Check container status
-docker ps -a --filter "name=ai-cli"
+docker ps -a --filter "name=aibox"
 
 # Monitor resource usage
-docker stats ai-cli-default
-docker stats ai-cli-work
-docker stats ai-cli-personal
+docker stats aibox-default
+docker stats aibox-work
+docker stats aibox-personal
 
 # Clean orphans before running
-./scripts/start.sh --clean
+aibox --clean
 ```
 
 ## Limitations

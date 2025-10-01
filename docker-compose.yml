@@ -1,14 +1,14 @@
 services:
-  ai-cli:
+  aibox:
     build:
       context: .
-      dockerfile: Dockerfile.ai-cli
+      dockerfile: Dockerfile
       args:
         USER: ${CONTAINER_USER:-ai}
         USER_UID: ${USER_UID:-1001}
         USER_GID: ${USER_GID:-1001}
-    image: ai-cli-env:latest
-    container_name: ai-cli-${AI_ACCOUNT:-default}
+    image: aibox:latest
+    container_name: aibox-${AI_ACCOUNT:-default}
 
     # Security settings
     security_opt:
@@ -67,14 +67,14 @@ services:
       # Project-specific environment variables
     env_file:
       - ${ENV_FILE:-.env.local}
-      - .ai-cli-env.${AI_ACCOUNT:-default}
+      - .aibox-env.${AI_ACCOUNT:-default}
 
     # Network settings
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
     networks:
-      - ai-network
+      - aibox-network
 
     # Resource limits
     deploy:
@@ -99,10 +99,10 @@ services:
 # Named volumes for persistence
 volumes:
   # Account-specific configuration (dynamically named)
-  ai-config:
-    name: ai-config-${AI_ACCOUNT:-default}
+  aibox-config:
+    name: aibox-config-${AI_ACCOUNT:-default}
 
 # Network for isolation
 networks:
-  ai-network:
+  aibox-network:
     driver: bridge

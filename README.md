@@ -1,4 +1,4 @@
-# AI CLI Docker Environment
+# aibox
 
 A secure, isolated Docker environment for running multiple AI command-line tools (Claude Code, Codex, and Gemini) with multi-account support and comprehensive security features.
 
@@ -17,36 +17,62 @@ A secure, isolated Docker environment for running multiple AI command-line tools
 
 - [Docker](https://docs.docker.com/get-docker/) installed and running
 - [Docker Compose](https://docs.docker.com/compose/install/) installed
+- [Node.js](https://nodejs.org/) (for npm installation method)
 
 ## 🏁 Quick Start
 
-### 1. Clone and Setup
+### Installation
+
+**Option 1: Install via npm (Recommended)**
+
+```bash
+# Install globally
+npm install -g aibox
+
+# Or use with npx (no installation needed)
+npx aibox
+```
+
+**Option 2: Install from GitHub**
+
+```bash
+npm install -g https://github.com/your-username/aibox.git
+```
+
+**Option 3: Clone and link locally**
 
 ```bash
 # Clone the repository
 git clone <your-repo-url>
-cd ai-cli
+cd aibox
+
+# Link globally
+npm link
+```
+
+### Setup
+
+```bash
+# Navigate to your project directory
+cd /path/to/your/project
 
 # Copy environment files
 cp .env.local.example .env.local
-cp .ai-cli-env.example .ai-cli-env.default
+cp .aibox-env.example .aibox-env.default
 
 # Edit configuration files as needed
-nano .ai-cli-env.default
+nano .aibox-env.default
 nano .env.local
+
+# Build the Docker image (first time only)
+aibox --build
 ```
 
-### 2. Build the Image
-
-```bash
-./scripts/start.sh --build
-```
-
-### 3. Run
+### Run
 
 ```bash
 # Default: Interactive bash shell
-./scripts/start.sh
+aibox
 
 # Inside the container, run any CLI:
 claude --dangerously-skip-permissions
@@ -54,9 +80,9 @@ codex
 gemini
 
 # Or run directly with arguments:
-./scripts/start.sh --dangerously-skip-permissions  # Claude Code
-./scripts/start.sh -t codex                        # Codex
-./scripts/start.sh -t gemini                       # Gemini
+aibox --dangerously-skip-permissions  # Claude Code
+aibox -t codex                        # Codex
+aibox -t gemini                       # Gemini
 ```
 
 ## 🎯 Usage
@@ -65,47 +91,47 @@ gemini
 
 ```bash
 # Interactive shell (default)
-./scripts/start.sh
+aibox
 
 # Run specific CLI directly
-./scripts/start.sh --dangerously-skip-permissions  # Claude Code
-./scripts/start.sh -t codex                        # Codex (executes directly)
-./scripts/start.sh -t gemini                       # Gemini (executes directly)
+aibox --dangerously-skip-permissions  # Claude Code
+aibox -t codex                        # Codex (executes directly)
+aibox -t gemini                       # Gemini (executes directly)
 
 # With additional arguments
-./scripts/start.sh -t codex help
-./scripts/start.sh -t gemini chat "Hello"
+aibox -t codex help
+aibox -t gemini chat "Hello"
 
 # Build/rebuild image
-./scripts/start.sh --build
+aibox --build
 
 # Clean orphan containers
-./scripts/start.sh --clean
+aibox --clean
 
 # Attach to running container
-./scripts/start.sh --attach
+aibox --attach
 
 # Use specific account
-./scripts/start.sh -a work
+aibox -a work
 
 # Remove container after exit
-./scripts/start.sh -r
+aibox -r
 ```
 
 ### Multi-Account Setup
 
 ```bash
 # Create account-specific configurations
-cp .ai-cli-env.example .ai-cli-env.work
-cp .ai-cli-env.example .ai-cli-env.personal
+cp .aibox-env.example .aibox-env.work
+cp .aibox-env.example .aibox-env.personal
 
 # Edit with account-specific settings
-nano .ai-cli-env.work
-nano .ai-cli-env.personal
+nano .aibox-env.work
+nano .aibox-env.personal
 
 # Use different accounts
-./scripts/start.sh -a work -t codex
-./scripts/start.sh -a personal -t claude --dangerously-skip-permissions
+aibox -a work -t codex
+aibox -a personal -t claude --dangerously-skip-permissions
 ```
 
 ## 📁 Project Structure
@@ -114,19 +140,23 @@ nano .ai-cli-env.personal
 .
 ├── README.md                      # This file
 ├── DOCKER.md                     # Detailed documentation
-├── Dockerfile.ai-cli             # Docker image definition
-├── docker-compose.ai-cli.yml     # Docker Compose configuration
+├── package.json                  # npm package configuration
+├── bin/
+│   └── aibox.js                  # npm executable entry point
+├── Dockerfile                    # Docker image definition
+├── docker-compose.yml            # Docker Compose configuration
 ├── scripts/
 │   ├── start.sh                  # Main wrapper script
 │   └── docker-entrypoint.sh      # Container entrypoint
-├── .ai-cli-env.example           # AI CLI config template
+├── .aibox-env.example            # aibox config template
 ├── .env.local.example            # Project env template
+├── .npmignore                    # npm publish ignore rules
 └── .gitignore                    # Git ignore rules
 ```
 
 ## ⚙️ Configuration
 
-### AI CLI Configuration (`.ai-cli-env.*`)
+### aibox Configuration (`.aibox-env.*`)
 
 Controls the container and AI CLI behavior:
 
@@ -174,12 +204,12 @@ All configurations are mapped from your host for instant persistence:
 
 ## 🐳 Container Naming
 
-Containers are named: `ai-cli-{AI_ACCOUNT}`
+Containers are named: `aibox-{AI_ACCOUNT}`
 
 Examples:
-- `ai-cli-default`
-- `ai-cli-work`
-- `ai-cli-personal`
+- `aibox-default`
+- `aibox-work`
+- `aibox-personal`
 
 The same container is reused for all CLI types (Claude, Codex, Gemini), making it more efficient.
 
@@ -200,37 +230,37 @@ For comprehensive documentation, see [DOCKER.md](./DOCKER.md) which includes:
 
 ```bash
 # Standard rebuild
-./scripts/start.sh --build
+aibox --build
 
-# Force clean rebuild
-docker build --no-cache -f Dockerfile.ai-cli -t ai-cli-env:latest .
+# Force clean rebuild (from aibox installation directory)
+docker build --no-cache -t aibox:latest -f "$(npm root -g)/aibox/Dockerfile" "$(npm root -g)/aibox"
 ```
 
 ### Managing Containers
 
 ```bash
-# List all AI CLI containers
-docker ps -a --filter "name=ai-cli"
+# List all aibox containers
+docker ps -a --filter "name=aibox"
 
 # Stop specific container
-docker stop ai-cli-default
+docker stop aibox-default
 
 # Remove specific container
-docker rm ai-cli-default
+docker rm aibox-default
 
 # Clean all stopped containers
-./scripts/start.sh --clean
+aibox --clean
 ```
 
 ### Viewing Logs
 
 ```bash
 # View container logs
-docker logs ai-cli-default
-docker logs ai-cli-work
+docker logs aibox-default
+docker logs aibox-work
 
 # Follow logs
-docker logs -f ai-cli-personal
+docker logs -f aibox-personal
 ```
 
 ## 🔧 Troubleshooting
@@ -239,8 +269,8 @@ docker logs -f ai-cli-personal
 
 ```bash
 # Rebuild from scratch
-docker-compose -f docker-compose.ai-cli.yml down
-./scripts/start.sh --build
+aibox --clean
+aibox --build
 ```
 
 ### SSH/Git issues
@@ -250,7 +280,7 @@ docker-compose -f docker-compose.ai-cli.yml down
 ls -la ~/.ssh
 
 # Enter container and test
-./scripts/start.sh
+aibox
 ssh -T git@github.com
 ```
 

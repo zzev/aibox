@@ -1,14 +1,22 @@
 #!/bin/bash
 
-# AI CLI Docker Wrapper Script
+# aibox - Docker Wrapper Script
 # Safely run Claude Code, Codex, or Gemini CLI in an isolated Docker environment with multi-account support
 
 set -e
 
-# Get the project root directory (one level up from scripts/)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# Go up one level: scripts -> project root
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+# Detect if running from global npm installation
+if [ -n "$AIBOX_INSTALL_DIR" ]; then
+    # Running from global npm install - use AIBOX_INSTALL_DIR for resources
+    INSTALL_DIR="$AIBOX_INSTALL_DIR"
+    # Use AIBOX_PROJECT_DIR (passed by bin/aibox.js) or current directory
+    PROJECT_ROOT="${AIBOX_PROJECT_DIR:-$(pwd)}"
+else
+    # Running from local clone - use script location
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    INSTALL_DIR="$(dirname "$SCRIPT_DIR")"
+    PROJECT_ROOT="$INSTALL_DIR"
+fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -26,23 +34,22 @@ USER_GID=1001
 
 # Container management functions
 container_exists() {
-    local container_name="ai-cli-${AI_ACCOUNT}"
+    local container_name="aibox-${AI_ACCOUNT}"
     docker ps -a --format '{{.Names}}' | grep -q "^${container_name}$"
 }
 
 container_running() {
-    local container_name="ai-cli-${AI_ACCOUNT}"
+    local container_name="aibox-${AI_ACCOUNT}"
     docker ps --format '{{.Names}}' | grep -q "^${container_name}$"
 }
 
 clean_orphans() {
     echo -e "${YELLOW}🧹 Cleaning orphan containers...${NC}"
     # Remove orphaned containers from docker-compose
-    cd "$PROJECT_ROOT"
-    docker-compose -f docker-compose.ai-cli.yml down --remove-orphans 2>/dev/null || true
+    docker-compose -f "${INSTALL_DIR}/docker-compose.yml" down --remove-orphans 2>/dev/null || true
 
-    # Remove any orphaned ai-cli run containers
-    docker ps -a --filter "name=ai-cli-run" --format "{{.ID}}" | \
+    # Remove any orphaned aibox run containers
+    docker ps -a --filter "name=aibox-run" --format "{{.ID}}" | \
     while IFS= read -r container_id; do
         [ -n "$container_id" ] && docker rm -f "$container_id" 2>/dev/null || true
     done
@@ -53,9 +60,9 @@ clean_orphans() {
 # Function to display help
 show_help() {
     cat << EOF
-AI CLI Docker Wrapper
+aibox - Docker Wrapper for AI CLIs
 
-Usage: ./scripts/start.sh [OPTIONS] [CLI_ARGS]
+Usage: aibox [OPTIONS] [CLI_ARGS]
 
 OPTIONS:
     -t, --type TYPE        Choose CLI type: claude, codex, gemini (default: 'claude')
@@ -70,7 +77,7 @@ OPTIONS:
 
 EXAMPLES:
     # Default: Open interactive bash shell (no CLI runs automatically)
-    ./scripts/start.sh
+    aibox
 
     # Inside the container, you can then run any CLI:
     # - claude --dangerously-skip-permissions
@@ -78,34 +85,34 @@ EXAMPLES:
     # - gemini
 
     # Run Claude Code directly with arguments
-    ./scripts/start.sh --dangerously-skip-permissions
+    aibox --dangerously-skip-permissions
 
     # Run Codex CLI directly
-    ./scripts/start.sh -t codex [args]
+    aibox -t codex [args]
 
     # Run Gemini CLI directly
-    ./scripts/start.sh -t gemini [args]
+    aibox -t gemini [args]
 
     # Build the image first
-    ./scripts/start.sh --build
+    aibox --build
 
     # Clean orphan containers before running
-    ./scripts/start.sh --clean
+    aibox --clean
 
     # Attach to existing running container
-    ./scripts/start.sh --attach
+    aibox --attach
 
     # Use a specific account
-    ./scripts/start.sh -a work
+    aibox -a work
 
 ACCOUNTS:
     Accounts allow you to maintain separate CLI configurations.
     Each account has its own volume for storing configuration and auth.
 
     To create a new account:
-    1. Copy .ai-cli-env.example to .ai-cli-env.ACCOUNT_NAME
+    1. Copy .aibox-env.example to .aibox-env.ACCOUNT_NAME
     2. Edit the file with your account-specific settings
-    3. Run: ./scripts/start.sh -a ACCOUNT_NAME
+    3. Run: aibox -a ACCOUNT_NAME
 
 EOF
 }
@@ -196,7 +203,7 @@ export USER_GID
 
 # Set SSH configuration
 # You can specify a specific SSH key file with SSH_KEY_FILE environment variable
-# Example: SSH_KEY_FILE=id_rsa_work ./scripts/claude/start.sh
+# Example: SSH_KEY_FILE=id_rsa_work aibox
 
 # SSH configuration
 if [ -n "$SSH_KEY_FILE" ]; then
@@ -223,9 +230,9 @@ if [ -z "$ENV_FILE" ]; then
         echo -e "❌ ${RED}Error: .env.local not found at ${DEFAULT_ENV_FILE}${NC}"
         echo ""
         echo -e "🚀 ${YELLOW}If you want to load a different env file, please execute:${NC}"
-        echo -e "${GREEN}  ENV_FILE=.env ./scripts/claude/start.sh [OPTIONS]${NC}"
-        echo -e "${GREEN}  ENV_FILE=.env.production ./scripts/claude/start.sh [OPTIONS]${NC}"
-        echo -e "${GREEN}  ENV_FILE=.env.test ./scripts/claude/start.sh [OPTIONS]${NC}"
+        echo -e "${GREEN}  ENV_FILE=.env aibox [OPTIONS]${NC}"
+        echo -e "${GREEN}  ENV_FILE=.env.production aibox [OPTIONS]${NC}"
+        echo -e "${GREEN}  ENV_FILE=.env.test aibox [OPTIONS]${NC}"
         echo ""
         echo -e "💡 ${YELLOW}Available env files in project:${NC}"
         ls -la "${PROJECT_ROOT}"/.env* 2>/dev/null | grep -v ".env.example\|.claude-env" | awk '{print "  " $9}' || echo "  None found"
@@ -248,21 +255,21 @@ else
 fi
 
 # Check for account-specific env file
-AI_ENV_FILE="${PROJECT_ROOT}/.ai-cli-env.${AI_ACCOUNT}"
+AI_ENV_FILE="${PROJECT_ROOT}/.aibox-env.${AI_ACCOUNT}"
 if [ ! -f "$AI_ENV_FILE" ]; then
-    echo -e "⚠️ ${YELLOW} Notice: .ai-cli-env.${AI_ACCOUNT} not found${NC}"
+    echo -e "⚠️ ${YELLOW} Notice: .aibox-env.${AI_ACCOUNT} not found${NC}"
 
     # Try to create from example
-    if [ -f "${PROJECT_ROOT}/.ai-cli-env.example" ]; then
-        echo -e "📝 ${GREEN}Creating ${AI_ENV_FILE} from .ai-cli-env.example...${NC}"
-        cp "${PROJECT_ROOT}/.ai-cli-env.example" "${AI_ENV_FILE}"
+    if [ -f "${PROJECT_ROOT}/.aibox-env.example" ]; then
+        echo -e "📝 ${GREEN}Creating ${AI_ENV_FILE} from .aibox-env.example...${NC}"
+        cp "${PROJECT_ROOT}/.aibox-env.example" "${AI_ENV_FILE}"
         echo -e "✅ ${GREEN}Created! Please edit ${AI_ENV_FILE} with your settings if needed.${NC}"
         echo ""
     else
         # If no example exists, show available accounts and create empty file
         echo ""
-        echo -e "💡 ${YELLOW}Available AI CLI account files:${NC}"
-        ls -la "${PROJECT_ROOT}"/.ai-cli-env.* 2>/dev/null | awk '{print "  " $9}' || echo "  None found"
+        echo -e "💡 ${YELLOW}Available aibox account files:${NC}"
+        ls -la "${PROJECT_ROOT}"/.aibox-env.* 2>/dev/null | awk '{print "  " $9}' || echo "  None found"
         echo ""
         echo -e "📝 ${GREEN}Creating empty ${AI_ENV_FILE}...${NC}"
         touch "${AI_ENV_FILE}"
@@ -274,19 +281,19 @@ if [ ! -f "$AI_ENV_FILE" ]; then
     fi
 
     # Only show alternative account message if other accounts exist
-    if ls "${PROJECT_ROOT}"/.ai-cli-env.* 2>/dev/null | grep -v ".ai-cli-env.${AI_ACCOUNT}\|.ai-cli-env.example" > /dev/null; then
+    if ls "${PROJECT_ROOT}"/.aibox-env.* 2>/dev/null | grep -v ".aibox-env.${AI_ACCOUNT}\|.aibox-env.example" > /dev/null; then
         echo -e "🚀 ${YELLOW}To use a different account, execute:${NC}"
-        echo -e "${GREEN}  ./scripts/start.sh -a ACCOUNT_NAME [OPTIONS]${NC}"
+        echo -e "${GREEN}  aibox -a ACCOUNT_NAME [OPTIONS]${NC}"
         echo ""
     fi
 fi
 
 # Build image if requested or if it doesn't exist
-if [ "$BUILD_IMAGE" = true ] || ! docker image inspect ai-cli-env:latest &> /dev/null; then
-    echo -e "${GREEN}Building AI CLI Docker image...${NC}"
+if [ "$BUILD_IMAGE" = true ] || ! docker image inspect aibox:latest &> /dev/null; then
+    echo -e "${GREEN}Building aibox Docker image...${NC}"
     echo -e "${YELLOW}This may take a few minutes. Showing build logs:${NC}"
     echo ""
-    cd "$PROJECT_ROOT"
+    cd "$INSTALL_DIR"
 
     # Build directly with docker build for better log visibility
     docker build \
@@ -294,8 +301,8 @@ if [ "$BUILD_IMAGE" = true ] || ! docker image inspect ai-cli-env:latest &> /dev
         --build-arg USER=${CONTAINER_USER} \
         --build-arg USER_UID=${USER_UID} \
         --build-arg USER_GID=${USER_GID} \
-        -t ai-cli-env:latest \
-        -f Dockerfile.ai-cli \
+        -t aibox:latest \
+        -f Dockerfile \
         .
 
     echo ""
@@ -333,9 +340,10 @@ fi
 
 # Check for attach mode
 if [ "$ATTACH_MODE" = true ]; then
-    CONTAINER_NAME="ai-cli-${AI_ACCOUNT}"
+    CONTAINER_NAME="aibox-${AI_ACCOUNT}"
     echo -e "${GREEN}📎 Attaching to container: ${CONTAINER_NAME}${NC}"
-    docker-compose -f docker-compose.ai-cli.yml up -d ai-cli
+    cd "$PROJECT_ROOT"
+    docker-compose -f "${INSTALL_DIR}/docker-compose.yml" up -d aibox
     docker exec -it "${CONTAINER_NAME}" /bin/bash
     exit 0
 fi
@@ -349,21 +357,21 @@ echo ""
 # Run the container from project root
 cd "$PROJECT_ROOT"
 
-CONTAINER_NAME="ai-cli-${AI_ACCOUNT}"
+CONTAINER_NAME="aibox-${AI_ACCOUNT}"
 
 # Simplified container execution
 if [ "$REMOVE_AFTER" = true ]; then
     # Force new container with --rm flag
     if [ "$INTERACTIVE_SHELL" = true ]; then
         echo -e "${GREEN}Starting interactive shell (temporary container)...${NC}"
-        docker-compose -f docker-compose.ai-cli.yml run --rm --remove-orphans ai-cli /bin/bash
+        docker-compose -f "${INSTALL_DIR}/docker-compose.yml" run --rm --remove-orphans aibox /bin/bash
     else
         echo -e "${GREEN}Running: $DOCKER_COMMAND${NC}"
-        docker-compose -f docker-compose.ai-cli.yml run --rm --remove-orphans ai-cli bash -c "$DOCKER_COMMAND"
+        docker-compose -f "${INSTALL_DIR}/docker-compose.yml" run --rm --remove-orphans aibox bash -c "$DOCKER_COMMAND"
     fi
 else
     # Reuse existing container
-    docker-compose -f docker-compose.ai-cli.yml up -d ai-cli
+    docker-compose -f "${INSTALL_DIR}/docker-compose.yml" up -d aibox
 
     if [ "$INTERACTIVE_SHELL" = true ]; then
         echo -e "${GREEN}Starting interactive shell...${NC}"
