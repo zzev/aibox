@@ -1,0 +1,47 @@
+{
+  "name": "aibox",
+  "version": "0.1.0",
+  "description": "Secure, isolated Docker environment for running multiple AI CLIs (Claude Code, Codex, Gemini) with multi-account support",
+  "main": "bin/aibox.js",
+  "bin": {
+    "aibox": "./bin/aibox.js"
+  },
+  "files": [
+    "bin/",
+    "scripts/",
+    "Dockerfile",
+    "docker-compose.yml",
+    ".aibox-env.example",
+    ".env.local.example"
+  ],
+  "scripts": {
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": [
+    "ai",
+    "cli",
+    "docker",
+    "claude",
+    "codex",
+    "gemini",
+    "anthropic",
+    "openai",
+    "google",
+    "isolated",
+    "multi-account",
+    "container"
+  ],
+  "author": "zzev <hey@zzev.me>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zzev/aibox.git"
+  },
+  "bugs": {
+    "url": "https://github.com/zzev/aibox/issues"
+  },
+  "homepage": "https://github.com/zzev/aibox#readme"
+}

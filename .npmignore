@@ -1,0 +1,27 @@
+# Git files
+.git/
+.gitignore
+
+# Environment files (users will create their own)
+.env.local
+.aibox-env.default
+.aibox-env.work
+.aibox-env.personal
+
+# Documentation (keep README.md but exclude detailed docs)
+DOCKER.md
+
+# macOS
+.DS_Store
+
+# Development files
+node_modules/
+*.log
+
+# Test files
+test/
+tests/
+*.test.js
+
+# CI/CD
+.github/
