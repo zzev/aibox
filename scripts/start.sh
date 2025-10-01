@@ -249,39 +249,39 @@ else
     echo -e "📝 ${GREEN}Using environment file: ${ENV_FILE}${NC}"
 fi
 
-# Check for account-specific env file
-AI_ENV_FILE="${PROJECT_ROOT}/.aibox-env.${AI_ACCOUNT}"
+# Check for account-specific profile (stored globally in ~/.aibox/profiles/)
+AIBOX_CONFIG_DIR="$HOME/.aibox"
+AIBOX_PROFILES_DIR="$AIBOX_CONFIG_DIR/profiles"
+AI_ENV_FILE="${AIBOX_PROFILES_DIR}/${AI_ACCOUNT}.env"
+
+# Create profiles directory if it doesn't exist
+mkdir -p "$AIBOX_PROFILES_DIR" 2>/dev/null
+
+# Check if profile exists, create from template if not
 if [ ! -f "$AI_ENV_FILE" ]; then
-    echo -e "⚠️ ${YELLOW} Notice: .aibox-env.${AI_ACCOUNT} not found${NC}"
-
-    # Try to create from example
-    if [ -f "${PROJECT_ROOT}/.aibox-env.example" ]; then
-        echo -e "📝 ${GREEN}Creating ${AI_ENV_FILE} from .aibox-env.example...${NC}"
-        cp "${PROJECT_ROOT}/.aibox-env.example" "${AI_ENV_FILE}"
-        echo -e "✅ ${GREEN}Created! Please edit ${AI_ENV_FILE} with your settings if needed.${NC}"
-        echo ""
+    # Try to create from example template
+    if [ -f "${INSTALL_DIR}/.aibox-env.example" ]; then
+        cp "${INSTALL_DIR}/.aibox-env.example" "${AI_ENV_FILE}"
+        # Update the account name in the created file
+        sed -i.bak "s/AI_ACCOUNT=default/AI_ACCOUNT=${AI_ACCOUNT}/" "${AI_ENV_FILE}" && rm "${AI_ENV_FILE}.bak" 2>/dev/null || true
     else
-        # If no example exists, show available accounts and create empty file
-        echo ""
-        echo -e "💡 ${YELLOW}Available aibox account files:${NC}"
-        ls -la "${PROJECT_ROOT}"/.aibox-env.* 2>/dev/null | awk '{print "  " $9}' || echo "  None found"
-        echo ""
-        echo -e "📝 ${GREEN}Creating empty ${AI_ENV_FILE}...${NC}"
-        touch "${AI_ENV_FILE}"
-        echo -e "✅ ${GREEN}Created empty file. Add your settings if needed:${NC}"
-        echo -e "${GREEN}  # Git configuration for commits${NC}"
-        echo -e "${GREEN}  GIT_AUTHOR_NAME=\"Your Name\"${NC}"
-        echo -e "${GREEN}  GIT_AUTHOR_EMAIL=\"your.email@example.com\"${NC}"
-        echo ""
-    fi
+        # Create minimal profile
+        cat > "${AI_ENV_FILE}" <<EOF
+# aibox Profile: ${AI_ACCOUNT}
+AI_ACCOUNT=${AI_ACCOUNT}
+AI_CLI=claude
+CONTAINER_USER=ai
 
-    # Only show alternative account message if other accounts exist
-    if ls "${PROJECT_ROOT}"/.aibox-env.* 2>/dev/null | grep -v ".aibox-env.${AI_ACCOUNT}\|.aibox-env.example" > /dev/null; then
-        echo -e "🚀 ${YELLOW}To use a different account, execute:${NC}"
-        echo -e "${GREEN}  aibox -a ACCOUNT_NAME [OPTIONS]${NC}"
-        echo ""
+# Git Configuration (for commits made by AI tools)
+GIT_AUTHOR_NAME=Your Name
+GIT_AUTHOR_EMAIL=your.email@example.com
+GIT_COMMITTER_NAME=Your Name
+GIT_COMMITTER_EMAIL=your.email@example.com
+EOF
     fi
 fi
+
+export AI_ENV_FILE
 
 # Build image if requested or if it doesn't exist
 if [ "$BUILD_IMAGE" = true ] || ! docker image inspect aibox:latest &> /dev/null; then

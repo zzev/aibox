@@ -61,9 +61,9 @@ cd /path/to/your/project
 # Build the Docker image (first time only)
 aibox --build
 
-# On first run, aibox will create .aibox-env.default automatically
+# On first run, aibox will create a default profile at ~/.aibox/profiles/default.env
 # Edit it if you need custom git settings or SSH keys
-nano .aibox-env.default
+nano ~/.aibox/profiles/default.env
 ```
 
 ### Run
@@ -118,23 +118,32 @@ aibox -r
 
 ### Multi-Account Setup
 
+Profiles are stored globally in `~/.aibox/profiles/` and work across all your projects:
+
 ```bash
-# Create account-specific configurations
-cp .aibox-env.example .aibox-env.work
-cp .aibox-env.example .aibox-env.personal
+# Create work profile (aibox will create it automatically on first use)
+aibox -a work
 
-# Edit with account-specific settings
-nano .aibox-env.work
-nano .aibox-env.personal
+# Or create manually by copying the default
+cp ~/.aibox/profiles/default.env ~/.aibox/profiles/work.env
+nano ~/.aibox/profiles/work.env
 
-# Use different accounts
+# Create personal profile
+cp ~/.aibox/profiles/default.env ~/.aibox/profiles/personal.env
+nano ~/.aibox/profiles/personal.env
+
+# Use different profiles
 aibox -a work -t codex
 aibox -a personal -t claude --dangerously-skip-permissions
 ```
 
 ## ⚙️ Configuration
 
-### aibox Configuration (`.aibox-env.*`)
+### aibox Profiles (`~/.aibox/profiles/`)
+
+Profiles are stored globally and contain your personal settings (git config, SSH keys, etc.):
+
+**Location**: `~/.aibox/profiles/{profile-name}.env`
 
 Controls the container and AI CLI behavior:
 

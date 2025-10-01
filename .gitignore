@@ -1,1 +1,3 @@
-.aibox-env.default
+# Local environment files (optional, user-specific)
+.env.local
+.env

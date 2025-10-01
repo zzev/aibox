@@ -22,14 +22,8 @@ GIT_COMMITTER_EMAIL=email@example.com
 # SSH_KEY_PATH=~/.ssh
 # SSH_KEY_FILE=id_rsa_work
 
-# Environment file
-ENV_FILE=.env.local
-
 # Node.js Environment
 NODE_ENV=development
-
-# Timezone (optional)
-# TZ=America/New_York
 
 # github-cli authentication (optional)
 # GH_TOKEN=

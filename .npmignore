@@ -4,9 +4,7 @@
 
 # Environment files (users will create their own)
 .env.local
-.aibox-env.default
-.aibox-env.work
-.aibox-env.personal
+.env
 
 # Documentation (keep README.md but exclude detailed docs)
 DOCKER.md

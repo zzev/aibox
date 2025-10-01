@@ -101,26 +101,35 @@ All three are mapped from your host machine for persistence.
 
 ## Multi-Account Management
 
-Create and use different accounts for different projects:
+Profiles are stored globally in `~/.aibox/profiles/` and work across all your projects.
 
 ```bash
-# Create a work account
-cp .aibox-env.example .aibox-env.work
-# Edit .aibox-env.work with work-specific settings
+# Profiles are created automatically on first use
+aibox -a work -t codex        # Creates ~/.aibox/profiles/work.env if it doesn't exist
+aibox -a personal             # Creates ~/.aibox/profiles/personal.env if it doesn't exist
 
-# Create a personal account
-cp .aibox-env.example .aibox-env.personal
-# Edit .aibox-env.personal with personal settings
+# Or create manually
+cp ~/.aibox/profiles/default.env ~/.aibox/profiles/work.env
+nano ~/.aibox/profiles/work.env
 
-# Use specific accounts
-aibox -a work -t codex
-aibox -a personal --dangerously-skip-permissions
+cp ~/.aibox/profiles/default.env ~/.aibox/profiles/client.env
+nano ~/.aibox/profiles/client.env
+
+# List existing profiles
+ls -1 ~/.aibox/profiles/*.env | xargs -n 1 basename
 ```
 
-Each account maintains its own:
-- AI CLI configurations (all three CLIs)
-- Authentication state
-- Git configuration
+**Benefits of centralized profiles:**
+- Configure once, use across all your projects
+- No per-project setup required
+- Easy to switch between profiles
+- Keeps your repositories clean
+
+Each profile maintains its own:
+- Git author/committer configuration
+- SSH key preferences
+- AI CLI preference (claude/codex/gemini)
+- Container settings
 
 ## Command Options
 
@@ -141,22 +150,36 @@ OPTIONS:
 
 ## File Structure
 
+**Installation directory** (where aibox is installed):
 ```
 .
 ├── Dockerfile                  # Docker image definition
-├── docker-compose.yml          # Docker Compose configuration (single service)
+├── docker-compose.yml          # Docker Compose configuration
 ├── scripts/
 │   ├── start.sh                # Wrapper script
 │   └── docker-entrypoint.sh    # Container entrypoint with git config and SSH fix
-├── .aibox-env.example          # Environment template
-├── .aibox-env.default          # Default account settings (auto-created from example)
-├── .aibox-env.work             # Work account settings (optional)
-└── .aibox-env.personal         # Personal account settings (optional)
+└── .aibox-env.example          # Profile template
+```
+
+**User configuration directory** (`~/.aibox/`):
+```
+~/.aibox/
+└── profiles/
+    ├── default.env             # Default profile (auto-created)
+    ├── work.env                # Work profile (optional)
+    └── personal.env            # Personal profile (optional)
+```
+
+**Project directory** (your code):
+```
+your-project/
+├── .env                        # Optional: Base environment variables
+└── .env.local                  # Optional: Local environment overrides
 ```
 
 ## Environment Variables
 
-Key environment variables in `.aibox-env.*` files:
+Key environment variables in profile files (`~/.aibox/profiles/*.env`):
 
 - `AI_ACCOUNT`: Account identifier (default: default)
 - `AI_CLI`: CLI type to use (claude, codex, or gemini)

@@ -67,7 +67,7 @@ services:
       # Project-specific environment variables
     env_file:
       - ${ENV_FILE:-.env.local}
-      - .aibox-env.${AI_ACCOUNT:-default}
+      - ${AI_ENV_FILE}
 
     # Network settings
     extra_hosts:
