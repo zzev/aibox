@@ -38,14 +38,14 @@ npx aibox
 **Option 2: Install from GitHub**
 
 ```bash
-npm install -g https://github.com/your-username/aibox.git
+npm install -g https://github.com/zzev/aibox.git
 ```
 
 **Option 3: Clone and link locally**
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/zzev/aibox.git
 cd aibox
 
 # Link globally
@@ -134,26 +134,6 @@ nano .aibox-env.personal
 # Use different accounts
 aibox -a work -t codex
 aibox -a personal -t claude --dangerously-skip-permissions
-```
-
-## 📁 Project Structure
-
-```
-.
-├── README.md                      # This file
-├── DOCKER.md                     # Detailed documentation
-├── package.json                  # npm package configuration
-├── bin/
-│   └── aibox.js                  # npm executable entry point
-├── Dockerfile                    # Docker image definition
-├── docker-compose.yml            # Docker Compose configuration
-├── scripts/
-│   ├── start.sh                  # Main wrapper script
-│   └── docker-entrypoint.sh      # Container entrypoint
-├── .aibox-env.example            # aibox config template
-├── .env.local.example            # Project env template
-├── .npmignore                    # npm publish ignore rules
-└── .gitignore                    # Git ignore rules
 ```
 
 ## ⚙️ Configuration
