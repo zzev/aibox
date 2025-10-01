@@ -226,11 +226,11 @@ fi
 if [ -z "$ENV_FILE" ]; then
     # ENV_FILE not specified, try to find one (in order of priority)
     if [ -f "${PROJECT_ROOT}/.env.local" ]; then
-        export ENV_FILE=".env.local"
-        echo -e "📝 ${GREEN}Using environment file: .env.local${NC}"
+        export ENV_FILE="${PROJECT_ROOT}/.env.local"
+        echo -e "📝 Using environment file: ${GREEN}.env.local${NC}"
     elif [ -f "${PROJECT_ROOT}/.env" ]; then
-        export ENV_FILE=".env"
-        echo -e "📝 ${GREEN}Using environment file: .env${NC}"
+        export ENV_FILE="${PROJECT_ROOT}/.env"
+        echo -e "📝 Using environment file: ${GREEN}.env${NC}"
     else
         # No env file found, use /dev/null (docker-compose will ignore it)
         export ENV_FILE="/dev/null"
@@ -245,8 +245,8 @@ else
         ls -la "${PROJECT_ROOT}"/.env* 2>/dev/null | grep -v ".env.example\|.claude-env" | awk '{print "  " $9}' || echo "  None found"
         exit 1
     fi
-    export ENV_FILE
-    echo -e "📝 ${GREEN}Using environment file: ${ENV_FILE}${NC}"
+    export ENV_FILE="$SPECIFIED_ENV_FILE"
+    echo -e "📝 Using environment file: ${GREEN}$(basename "$ENV_FILE")${NC}"
 fi
 
 # Check for account-specific profile (stored globally in ~/.aibox/profiles/)
