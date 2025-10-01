@@ -163,7 +163,7 @@ Key environment variables in `.aibox-env.*` files:
 - `CONTAINER_USER`: Container username (default: ai)
 - `USER_UID`: User ID for the container user (default: 1001)
 - `USER_GID`: Group ID for the container user (default: 1001)
-- `ENV_FILE`: Specify which .env file to use (default: .env.local)
+- `ENV_FILE`: Specify which .env file to use (auto-detects .env.local or .env if not specified)
 - `GIT_AUTHOR_NAME`: Git commit author name (automatically configured on container start)
 - `GIT_AUTHOR_EMAIL`: Git commit author email (automatically configured on container start)
 - `GIT_COMMITTER_NAME`: Git committer name (defaults to GIT_AUTHOR_NAME if not set)
@@ -173,16 +173,19 @@ Key environment variables in `.aibox-env.*` files:
 
 ### Using Different Environment Files
 
-You can specify which `.env` file to load for your project:
+Environment files are **optional**. aibox will automatically detect and load them in this priority order:
+
+1. `.env.local` (if exists)
+2. `.env` (if exists)
+3. None (continues without project-specific env vars)
+
+You can override this behavior by explicitly specifying a file:
 
 ```bash
-# Use default .env.local file
+# Auto-detect (default behavior)
 aibox
 
-# Use .env file
-ENV_FILE=.env aibox
-
-# Use .env.production
+# Use specific .env file
 ENV_FILE=.env.production aibox -t codex
 
 # Use .env.staging
@@ -192,7 +195,7 @@ ENV_FILE=.env.staging aibox -t gemini
 ENV_FILE=.env.test aibox
 ```
 
-**Note:** By default, the script looks for `.env.local`. If it doesn't exist, you'll see an error message with instructions on how to specify a different env file.
+**Note:** If you explicitly specify an `ENV_FILE` that doesn't exist, aibox will fail with an error. Auto-detection never fails.
 
 ### SSH Key Configuration
 

@@ -58,16 +58,12 @@ npm link
 # Navigate to your project directory
 cd /path/to/your/project
 
-# Copy environment files
-cp .env.local.example .env.local
-cp .aibox-env.example .aibox-env.default
-
-# Edit configuration files as needed
-nano .aibox-env.default
-nano .env.local
-
 # Build the Docker image (first time only)
 aibox --build
+
+# On first run, aibox will create .aibox-env.default automatically
+# Edit it if you need custom git settings or SSH keys
+nano .aibox-env.default
 ```
 
 ### Run
@@ -151,12 +147,21 @@ GIT_AUTHOR_EMAIL="you@example.com"
 SSH_KEY_FILE=id_rsa         # Specific SSH key (optional)
 ```
 
-### Project Environment (`.env.local`)
+### Project Environment (`.env` / `.env.local`) - Optional
 
-Project-specific variables loaded into the container:
+Project-specific environment variables are **optional**. If your project needs them, aibox will automatically detect and load them in this priority order:
+
+1. `.env.local` (local overrides, typically not committed)
+2. `.env` (base environment, typically committed)
+
+If neither exists, aibox continues without loading project-specific variables.
+
+Example `.env.local`:
 
 ```bash
 NODE_ENV=development
+API_KEY=your-api-key
+DATABASE_URL=postgresql://localhost/mydb
 # Add your API keys, database URLs, etc.
 ```
 
