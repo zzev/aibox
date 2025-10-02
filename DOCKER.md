@@ -280,11 +280,16 @@ The following data persists across container restarts (mapped from host):
 
 ## Container Naming
 
-Containers are named based on the account only (not CLI type):
-- Format: `aibox-{AI_ACCOUNT}`
-- Examples: `aibox-default`, `aibox-work`, `aibox-personal`
+Containers are named based on the account and project directory:
+- Format: `aibox-{AI_ACCOUNT}-{PROJECT_HASH}`
+- Examples: `aibox-default-a1b2c3d4`, `aibox-work-e5f6g7h8`
 
-This means the same container is reused regardless of which CLI you run. You can switch between Claude, Codex, and Gemini using the same container, which is more efficient and avoids container proliferation.
+The project hash is an 8-character MD5 hash of the project directory path. This allows:
+- **Multiple projects**: Each project gets its own container, even with the same account
+- **Multiple terminals**: All terminals in the same project share the same container
+- **No conflicts**: Running aibox in different projects won't close existing sessions
+
+You can still switch between Claude, Codex, and Gemini within the same container.
 
 ## Troubleshooting
 
