@@ -181,38 +181,11 @@ To use multiple Gemini accounts, you would need to manually switch configuration
 
 ### aibox Profiles (`~/.aibox/profiles/`)
 
-Profiles are stored globally and contain your personal settings (git config, SSH keys, etc.):
+Profiles are stored globally in `~/.aibox/profiles/` and contain your personal settings (git config, SSH keys, etc.)
 
-**Location**: `~/.aibox/profiles/{profile-name}.env`
+### Project Environment - Optional
 
-Controls the container and AI CLI behavior:
-
-```bash
-AI_ACCOUNT=default           # Account identifier
-AI_CLI=claude               # Default CLI (claude/codex/gemini)
-CONTAINER_USER=ai           # Container username
-GIT_AUTHOR_NAME="Your Name"
-GIT_AUTHOR_EMAIL="you@example.com"
-SSH_KEY_FILE=id_rsa         # Specific SSH key (optional)
-```
-
-### Project Environment (`.env` / `.env.local`) - Optional
-
-Project-specific environment variables are **optional**. If your project needs them, aibox will automatically detect and load them in this priority order:
-
-1. `.env.local` (local overrides, typically not committed)
-2. `.env` (base environment, typically committed)
-
-If neither exists, aibox continues without loading project-specific variables.
-
-Example `.env.local`:
-
-```bash
-NODE_ENV=development
-API_KEY=your-api-key
-DATABASE_URL=postgresql://localhost/mydb
-# Add your API keys, database URLs, etc.
-```
+Project-specific environment variables are **optional**. If your project has them, aibox will automatically detect and load them.
 
 ## 🔒 Security Features
 

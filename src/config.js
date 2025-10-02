@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { execSync } = require('child_process');
+const TOML = require('@iarna/toml');
 
 /**
  * Configuration management for aibox
@@ -37,10 +38,10 @@ function ensureConfigDirs() {
 /**
  * Get profile file path
  * @param {string} account - Account name
- * @returns {string} Profile file path
+ * @returns {string} Profile file path (.toml format)
  */
 function getProfilePath(account) {
-  return path.join(AIBOX_PROFILES_DIR, `${account}.env`);
+  return path.join(AIBOX_PROFILES_DIR, `${account}.toml`);
 }
 
 /**
@@ -53,7 +54,68 @@ function profileExists(account) {
 }
 
 /**
- * Parse environment file into object
+ * Parse TOML file into flat environment object
+ * @param {string} filePath - Path to TOML file
+ * @returns {Object} Flattened environment variables
+ */
+function parseTOMLFile(filePath) {
+  if (!fs.existsSync(filePath)) {
+    return {};
+  }
+
+  try {
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const parsed = TOML.parse(content);
+
+    // Flatten nested structure for environment variables
+    const env = {};
+
+    // Map TOML sections to env variables
+    if (parsed.profile) {
+      if (parsed.profile.account) env.AI_ACCOUNT = parsed.profile.account;
+      if (parsed.profile.cli) env.AI_CLI = parsed.profile.cli;
+    }
+
+    if (parsed.git) {
+      if (parsed.git.author_name) env.GIT_AUTHOR_NAME = parsed.git.author_name;
+      if (parsed.git.author_email) env.GIT_AUTHOR_EMAIL = parsed.git.author_email;
+      if (parsed.git.committer_name) env.GIT_COMMITTER_NAME = parsed.git.committer_name;
+      if (parsed.git.committer_email) env.GIT_COMMITTER_EMAIL = parsed.git.committer_email;
+    }
+
+    if (parsed.ssh) {
+      if (parsed.ssh.key_file) env.SSH_KEY_FILE = parsed.ssh.key_file;
+      if (parsed.ssh.path) env.SSH_KEY_PATH = parsed.ssh.path;
+    }
+
+    if (parsed.container) {
+      if (parsed.container.user) env.CONTAINER_USER = parsed.container.user;
+      if (parsed.container.uid) env.USER_UID = String(parsed.container.uid);
+      if (parsed.container.gid) env.USER_GID = String(parsed.container.gid);
+    }
+
+    if (parsed.github) {
+      if (parsed.github.token) env.GH_TOKEN = parsed.github.token;
+    }
+
+    if (parsed.directories) {
+      if (parsed.directories.claude) env.CLAUDE_CONFIG_DIR = parsed.directories.claude;
+      if (parsed.directories.codex) env.CODEX_HOME = parsed.directories.codex;
+    }
+
+    if (parsed.environment) {
+      if (parsed.environment.node_env) env.NODE_ENV = parsed.environment.node_env;
+    }
+
+    return env;
+  } catch (error) {
+    console.error(`Error parsing TOML file ${filePath}:`, error.message);
+    return {};
+  }
+}
+
+/**
+ * Parse environment file into object (.env format for project files only)
  * @param {string} filePath - Path to env file
  * @returns {Object} Parsed environment variables
  */
@@ -88,7 +150,7 @@ function parseEnvFile(filePath) {
 }
 
 /**
- * Load profile environment
+ * Load profile environment (TOML format only)
  * @param {string} account - Account name
  * @returns {Object} Profile environment variables
  */
@@ -97,7 +159,7 @@ function loadProfile(account) {
   if (!fs.existsSync(profilePath)) {
     return {};
   }
-  return parseEnvFile(profilePath);
+  return parseTOMLFile(profilePath);
 }
 
 /**
@@ -351,6 +413,7 @@ module.exports = {
   getProfilePath,
   profileExists,
   parseEnvFile,
+  parseTOMLFile,
   loadProfile,
   getHostGitConfig,
   getCliConfigDirs,

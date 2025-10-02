@@ -1,0 +1,43 @@
+# aibox Profile Example
+# Copy this file to ~/.aibox/profiles/{profile-name}.toml
+# Example: ~/.aibox/profiles/work.toml
+
+[profile]
+# Account identifier (used for volume naming and container naming)
+account = "default"
+# AI CLI Type (claude, codex, or gemini)
+cli = "claude"
+
+[git]
+# Git configuration for commits made by AI tools
+author_name = "Your Name"
+author_email = "your.email@example.com"
+committer_name = "Your Name"
+committer_email = "your.email@example.com"
+
+[ssh]
+# SSH Configuration
+path = "~/.ssh"
+# Specific SSH key file (e.g., "id_rsa", "id_ed25519", "id_rsa_work")
+key_file = "id_ed25519"
+
+[container]
+# Container user settings (avoid conflict with system USER variable)
+user = "ai"
+uid = 1001
+gid = 1001
+
+[directories]
+# CLI-specific configuration directories
+# Claude Code config (default: ~/.claude or ~/.claude-{account})
+claude = "~/.claude"
+# Codex config (default: ~/.codex or ~/.codex-{account})
+codex = "~/.codex"
+
+[github]
+# GitHub CLI authentication (optional)
+# token = "ghp_your_token_here"
+
+[environment]
+# Additional environment variables (optional)
+# node_env = "development"

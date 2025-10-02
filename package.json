@@ -12,17 +12,17 @@
     "scripts/",
     "Dockerfile",
     "docker-compose.yml",
-    ".aibox-env.example",
-    ".env.local.example"
+    ".aibox-profile.example.toml"
   ],
   "scripts": {
     "test": "echo \"No tests yet\" && exit 0"
   },
   "dependencies": {
-    "commander": "^12.0.0",
-    "ora": "^5.4.1",
+    "@iarna/toml": "^2.2.5",
+    "@inquirer/prompts": "^4.0.0",
     "chalk": "^4.1.2",
-    "@inquirer/prompts": "^4.0.0"
+    "commander": "^12.0.0",
+    "ora": "^5.4.1"
   },
   "keywords": [
     "ai",

@@ -1,5 +1,6 @@
 const { input, select, confirm } = require('@inquirer/prompts');
 const fs = require('fs');
+const TOML = require('@iarna/toml');
 const config = require('./config');
 const ui = require('./ui');
 
@@ -149,46 +150,57 @@ async function createProfile(account) {
   console.log(ui.colors.dim(`   Location: ${profilePath}`));
   console.log('');
 
-  return config.parseEnvFile(profilePath);
+  return config.parseTOMLFile(profilePath);
 }
 
 /**
- * Build profile file content
+ * Build profile file content in TOML format
  * @param {Object} options - Profile options
  * @returns {string} Profile file content
  */
 function buildProfileContent(options) {
   const { account, gitName, gitEmail, aiCli, claudeConfigDir, codexHome, sshPath, sshFile, ghToken } = options;
 
-  let content = `# aibox Profile: ${account}
-AI_ACCOUNT=${account}
-AI_CLI=${aiCli}
-CONTAINER_USER=ai
-
-# CLI Configuration Directories
-CLAUDE_CONFIG_DIR=${claudeConfigDir}
-CODEX_HOME=${codexHome}
-
-# Git Configuration
-GIT_AUTHOR_NAME=${gitName}
-GIT_AUTHOR_EMAIL=${gitEmail}
-GIT_COMMITTER_NAME=${gitName}
-GIT_COMMITTER_EMAIL=${gitEmail}
-
-# SSH Configuration
-SSH_KEY_PATH=${sshPath}
-SSH_KEY_FILE=${sshFile}
-`;
+  const tomlData = {
+    profile: {
+      account: account,
+      cli: aiCli,
+    },
+    git: {
+      author_name: gitName,
+      author_email: gitEmail,
+      committer_name: gitName,
+      committer_email: gitEmail,
+    },
+    ssh: {
+      path: sshPath,
+      key_file: sshFile,
+    },
+    container: {
+      user: 'ai',
+      uid: 1001,
+      gid: 1001,
+    },
+    directories: {
+      claude: claudeConfigDir,
+      codex: codexHome,
+    },
+  };
 
   // Add GitHub token if provided
   if (ghToken) {
-    content += `
-# GitHub CLI
-GH_TOKEN=${ghToken}
-`;
+    tomlData.github = {
+      token: ghToken,
+    };
   }
 
-  return content;
+  // Convert to TOML string with header comment
+  const tomlString = TOML.stringify(tomlData);
+  return `# aibox Profile: ${account}
+# Created: ${new Date().toISOString()}
+# Format: TOML (https://toml.io)
+
+${tomlString}`;
 }
 
 /**
