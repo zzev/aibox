@@ -164,8 +164,10 @@ OPTIONS:
 .
 ├── Dockerfile                  # Docker image definition
 ├── docker-compose.yml          # Docker Compose configuration
+├── bin/
+│   └── aibox.js                # CLI entry point
+├── src/                        # CLI implementation
 ├── scripts/
-│   ├── start.sh                # Wrapper script
 │   └── docker-entrypoint.sh    # Container entrypoint with git config and SSH fix
 └── .aibox-profile.example.toml # Profile template
 ```
