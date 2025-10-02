@@ -8,6 +8,7 @@
   },
   "files": [
     "bin/",
+    "src/",
     "scripts/",
     "Dockerfile",
     "docker-compose.yml",
@@ -16,6 +17,12 @@
   ],
   "scripts": {
     "test": "echo \"No tests yet\" && exit 0"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "ora": "^5.4.1",
+    "chalk": "^4.1.2",
+    "@inquirer/prompts": "^4.0.0"
   },
   "keywords": [
     "ai",
@@ -34,7 +41,7 @@
   "author": "zzev <hey@zzev.me>",
   "license": "MIT",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
