@@ -47,6 +47,11 @@ aibox -t codex
 # Run Gemini directly (executes gemini CLI)
 aibox -t gemini
 
+# YOLO mode (skip all permissions - unified syntax)
+aibox --yolo                          # Claude with --dangerously-skip-permissions
+aibox -t codex --yolo                 # Codex with --sandbox danger-full-access
+aibox -t gemini --yolo                # Gemini with --yolo
+
 # Run specific CLI with arguments
 aibox -t codex help
 aibox -t gemini chat "Hello"
@@ -86,6 +91,11 @@ aibox -t codex help
 # Gemini CLI - executes gemini directly
 aibox -t gemini
 aibox -t gemini chat "Hello"
+
+# YOLO mode (unified syntax across all CLIs)
+aibox --yolo                          # Uses default CLI (usually claude)
+aibox -t codex --yolo                 # Codex in YOLO mode
+aibox -t gemini --yolo                # Gemini in YOLO mode
 
 # Or use environment variable
 AI_CLI=codex aibox

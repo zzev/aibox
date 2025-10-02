@@ -81,6 +81,11 @@ gemini
 aibox --dangerously-skip-permissions  # Claude Code
 aibox -t codex                        # Codex
 aibox -t gemini                       # Gemini
+
+# YOLO mode (unified syntax for skipping permissions):
+aibox --yolo                          # Claude with --dangerously-skip-permissions
+aibox -t codex --yolo                 # Codex with --sandbox danger-full-access
+aibox -t gemini --yolo                # Gemini with --yolo
 ```
 
 ## 🎯 Usage
@@ -95,6 +100,12 @@ aibox
 aibox --dangerously-skip-permissions  # Claude Code
 aibox -t codex                        # Codex (executes directly)
 aibox -t gemini                       # Gemini (executes directly)
+
+# YOLO mode (skip all permissions)
+aibox --yolo                          # Claude with --dangerously-skip-permissions
+aibox -t codex --yolo                 # Codex with --sandbox danger-full-access
+aibox -t gemini --yolo                # Gemini with --yolo
+aibox --yolo file.py                  # YOLO mode with additional arguments
 
 # With additional arguments
 aibox -t codex help

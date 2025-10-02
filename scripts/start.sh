@@ -70,6 +70,7 @@ OPTIONS:
     -s, --shell            Start an interactive shell instead of CLI
     -c, --command CMD      Run a specific command in the container
     -r, --remove           Remove the container after exit
+    --yolo                 Run CLI in YOLO mode (skip all permissions)
     --clean                Clean orphan containers before running
     --attach               Attach to existing container if running
     -h, --help             Show this help message
@@ -91,6 +92,12 @@ EXAMPLES:
 
     # Run Gemini CLI directly
     aibox -t gemini [args]
+
+    # YOLO mode (skip permissions for any CLI)
+    aibox --yolo                          # Claude with --dangerously-skip-permissions
+    aibox -t codex --yolo                 # Codex with --sandbox danger-full-access
+    aibox -t gemini --yolo                # Gemini with --yolo
+    aibox --yolo file.py                  # Claude YOLO mode with additional args
 
     # Clean orphan containers before running
     aibox --clean
@@ -118,6 +125,7 @@ INTERACTIVE_SHELL=false
 REMOVE_AFTER=false
 CLEAN_ORPHANS=false
 ATTACH_MODE=false
+YOLO_MODE=false
 CUSTOM_COMMAND=""
 CLI_ARGS=()
 CLI_TYPE_SPECIFIED=false
@@ -151,6 +159,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --attach)
             ATTACH_MODE=true
+            shift
+            ;;
+        --yolo)
+            YOLO_MODE=true
             shift
             ;;
         -h|--help)
@@ -346,6 +358,21 @@ fi
 # Prepare the command to run
 if [ -n "$CUSTOM_COMMAND" ]; then
     DOCKER_COMMAND="$CUSTOM_COMMAND"
+    INTERACTIVE_SHELL=false
+elif [ "$YOLO_MODE" = true ]; then
+    # YOLO mode: translate to CLI-specific skip-permissions flags
+    case "$AI_CLI" in
+        claude)
+            YOLO_FLAGS="--dangerously-skip-permissions"
+            ;;
+        codex)
+            YOLO_FLAGS="--sandbox danger-full-access --ask-for-approval never"
+            ;;
+        gemini)
+            YOLO_FLAGS="--yolo"
+            ;;
+    esac
+    DOCKER_COMMAND="${AI_CLI} ${YOLO_FLAGS} ${CLI_ARGS[*]}"
     INTERACTIVE_SHELL=false
 elif [ ${#CLI_ARGS[@]} -gt 0 ]; then
     DOCKER_COMMAND="${AI_CLI} ${CLI_ARGS[*]}"
