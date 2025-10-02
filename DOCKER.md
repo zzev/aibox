@@ -167,16 +167,16 @@ OPTIONS:
 ├── scripts/
 │   ├── start.sh                # Wrapper script
 │   └── docker-entrypoint.sh    # Container entrypoint with git config and SSH fix
-└── .aibox-env.example          # Profile template
+└── .aibox-profile.example.toml # Profile template
 ```
 
 **User configuration directory** (`~/.aibox/`):
 ```
 ~/.aibox/
 └── profiles/
-    ├── default.env             # Default profile (auto-created)
-    ├── work.env                # Work profile (optional)
-    └── personal.env            # Personal profile (optional)
+    ├── default.toml            # Default profile (auto-created)
+    ├── work.toml               # Work profile (optional)
+    └── personal.toml           # Personal profile (optional)
 ```
 
 **Project directory** (your code):
@@ -367,8 +367,8 @@ If you're on macOS, your SSH config likely contains `UseKeychain` options that a
 The container automatically configures git with your environment variables on startup. If commits still show the wrong author:
 
 ```bash
-# Check your .aibox-env.* file has the correct values
-cat .aibox-env.default | grep GIT_
+# Check your profile file has the correct values
+cat ~/.aibox/profiles/default.toml | grep -A 4 '\[git\]'
 
 # Inside the container, verify git configuration
 aibox
@@ -425,9 +425,9 @@ aibox -r -a ci -t codex
 ## Best Practices
 
 1. **Use accounts**: Separate work/personal/client projects
-2. **Choose the right CLI**: Use `-t` flag or `AI_CLI` environment variable
-3. **Environment consistency**: Keep `.aibox-env.*` files in `.gitignore`
-4. **Regular updates**: Pull latest image periodically with `docker pull ghcr.io/zzev/aibox:latest`
+2. **Choose the right CLI**: Use `-t` flag to select between claude, codex, or gemini
+3. **Regular updates**: Pull latest image periodically with `docker pull ghcr.io/zzev/aibox:latest`
+4. **Profile management**: Use `aibox -p ACCOUNT_NAME` to configure profiles
 5. **Monitor resources**: Check Docker stats for resource usage
 6. **Container management**: Uses docker-compose for simplified container lifecycle
 7. **SSH compatibility**: macOS SSH configs are automatically cleaned for Linux compatibility

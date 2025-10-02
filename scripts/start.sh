@@ -112,10 +112,11 @@ ACCOUNTS:
     Accounts allow you to maintain separate CLI configurations.
     Each account has its own volume for storing configuration and auth.
 
-    To create a new account:
-    1. Copy .aibox-env.example to .aibox-env.ACCOUNT_NAME
-    2. Edit the file with your account-specific settings
-    3. Run: aibox -a ACCOUNT_NAME
+    Profiles are stored in: ~/.aibox/profiles/
+
+    To create or reconfigure a profile:
+    \$ aibox -p ACCOUNT_NAME
+    \$ aibox --setup ACCOUNT_NAME
 
 EOF
 }
