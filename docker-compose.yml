@@ -23,9 +23,9 @@ services:
       # Mount current project directory
       - ${PWD}:/home/${CONTAINER_USER:-ai}/code:rw
 
-      # AI CLI configurations from host
-      - ${HOME}/.claude:/home/${CONTAINER_USER:-ai}/.claude:rw
-      - ${HOME}/.codex:/home/${CONTAINER_USER:-ai}/.codex:rw
+      # AI CLI configurations from host (multi-account support)
+      - ${CLAUDE_CONFIG_DIR:-${HOME}/.claude}:/home/${CONTAINER_USER:-ai}/.claude:rw
+      - ${CODEX_HOME:-${HOME}/.codex}:/home/${CONTAINER_USER:-ai}/.codex:rw
       - ${HOME}/.gemini:/home/${CONTAINER_USER:-ai}/.gemini:rw
 
       # SSH keys for git operations (read-only)
@@ -49,6 +49,7 @@ services:
 
       # CLI config directories
       - CLAUDE_CONFIG_DIR=/home/${CONTAINER_USER:-ai}/.claude
+      - CODEX_HOME=/home/${CONTAINER_USER:-ai}/.codex
       - HOME=/home/${CONTAINER_USER:-ai}
 
       # SSH key configuration

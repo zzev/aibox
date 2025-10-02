@@ -145,6 +145,23 @@ aibox -a work -t codex
 aibox -a personal -t claude --dangerously-skip-permissions
 ```
 
+**How Multi-Account Works:**
+
+Each profile uses separate configuration directories for Claude Code and Codex:
+
+| CLI | Default Account | Other Accounts | Multi-Account Support |
+|-----|----------------|----------------|---------------------|
+| **Claude Code** | `~/.claude` | `~/.claude-{account}` | ✅ Yes (via `CLAUDE_CONFIG_DIR`) |
+| **Codex** | `~/.codex` | `~/.codex-{account}` | ✅ Yes (via `CODEX_HOME`) |
+| **Gemini** | `~/.gemini` | `~/.gemini` (shared) | ❌ No (hardcoded path) |
+
+**Important Notes:**
+- **Claude Code**: Uses `CLAUDE_CONFIG_DIR` environment variable (undocumented feature, some known issues)
+- **Codex**: Uses `CODEX_HOME` environment variable (fully supported)
+- **Gemini**: Does not support custom config directories - all accounts share `~/.gemini`
+
+To use multiple Gemini accounts, you would need to manually switch configurations by logging out/in.
+
 ## ⚙️ Configuration
 
 ### aibox Profiles (`~/.aibox/profiles/`)
@@ -198,9 +215,9 @@ All configurations are mapped from your host for instant persistence:
 
 | Host Path | Container Path | Purpose |
 |-----------|---------------|---------|
-| `~/.claude` | `/home/ai/.claude` | Claude Code config |
-| `~/.codex` | `/home/ai/.codex` | Codex config |
-| `~/.gemini` | `/home/ai/.gemini` | Gemini config |
+| `~/.claude` or `~/.claude-{account}` | `/home/ai/.claude` | Claude Code config (account-specific) |
+| `~/.codex` or `~/.codex-{account}` | `/home/ai/.codex` | Codex config (account-specific) |
+| `~/.gemini` | `/home/ai/.gemini` | Gemini config (shared across accounts) |
 | `~/.ssh` | `/home/ai/.ssh` | SSH keys (read-only) |
 | `~/.gitignore_global` | `/home/ai/.gitignore_global` | Global gitignore |
 | `~/.config/ccstatusline` | `/home/ai/.config/ccstatusline` | ccstatusline config |

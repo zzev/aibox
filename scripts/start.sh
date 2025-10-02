@@ -230,6 +230,24 @@ if [ -f "$HOME/.gitignore_global" ]; then
     export GITIGNORE_GLOBAL_PATH="$HOME/.gitignore_global"
 fi
 
+# AI CLI configuration directories (multi-account support)
+# Claude Code and Codex support custom config directories via environment variables
+# Gemini does not support custom config directories (always uses ~/.gemini)
+if [ "$AI_ACCOUNT" = "default" ]; then
+    # Default account uses standard paths
+    export CLAUDE_CONFIG_DIR="$HOME/.claude"
+    export CODEX_HOME="$HOME/.codex"
+else
+    # Other accounts use account-specific paths
+    export CLAUDE_CONFIG_DIR="$HOME/.claude-${AI_ACCOUNT}"
+    export CODEX_HOME="$HOME/.codex-${AI_ACCOUNT}"
+fi
+
+# Create config directories if they don't exist
+mkdir -p "$CLAUDE_CONFIG_DIR" 2>/dev/null || true
+mkdir -p "$CODEX_HOME" 2>/dev/null || true
+mkdir -p "$HOME/.gemini" 2>/dev/null || true
+
 # Check for project environment file (optional)
 if [ -z "$ENV_FILE" ]; then
     # ENV_FILE not specified, try to find one (in order of priority)
