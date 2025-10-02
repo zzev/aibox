@@ -52,6 +52,12 @@ services:
       - CODEX_HOME=/home/${CONTAINER_USER:-ai}/.codex
       - HOME=/home/${CONTAINER_USER:-ai}
 
+      # Git configuration
+      - GIT_AUTHOR_NAME=${GIT_AUTHOR_NAME:-}
+      - GIT_AUTHOR_EMAIL=${GIT_AUTHOR_EMAIL:-}
+      - GIT_COMMITTER_NAME=${GIT_COMMITTER_NAME:-}
+      - GIT_COMMITTER_EMAIL=${GIT_COMMITTER_EMAIL:-}
+
       # SSH key configuration
       - SSH_KEY_FILE=${SSH_KEY_FILE:-}
 
