@@ -1,13 +1,6 @@
 services:
   aibox:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        USER: ${CONTAINER_USER:-ai}
-        USER_UID: ${USER_UID:-1001}
-        USER_GID: ${USER_GID:-1001}
-    image: aibox:latest
+    image: ghcr.io/zzev/aibox:latest
     container_name: aibox-${AI_ACCOUNT:-default}
 
     # Security settings

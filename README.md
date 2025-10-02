@@ -58,11 +58,11 @@ npm link
 # Navigate to your project directory
 cd /path/to/your/project
 
-# Build the Docker image (first time only)
-aibox --build
+# On first run, aibox will automatically pull the Docker image from ghcr.io
+# and create a default profile at ~/.aibox/profiles/default.env
+aibox
 
-# On first run, aibox will create a default profile at ~/.aibox/profiles/default.env
-# Edit it if you need custom git settings or SSH keys
+# Edit the profile if you need custom git settings or SSH keys
 nano ~/.aibox/profiles/default.env
 ```
 
@@ -99,9 +99,6 @@ aibox -t gemini                       # Gemini (executes directly)
 # With additional arguments
 aibox -t codex help
 aibox -t gemini chat "Hello"
-
-# Build/rebuild image
-aibox --build
 
 # Clean orphan containers
 aibox --clean
@@ -222,16 +219,6 @@ For comprehensive documentation, see [DOCKER.md](./DOCKER.md) which includes:
 
 ## 🛠️ Common Operations
 
-### Rebuilding the Image
-
-```bash
-# Standard rebuild
-aibox --build
-
-# Force clean rebuild (from aibox installation directory)
-docker build --no-cache -t aibox:latest -f "$(npm root -g)/aibox/Dockerfile" "$(npm root -g)/aibox"
-```
-
 ### Managing Containers
 
 ```bash
@@ -264,9 +251,12 @@ docker logs -f aibox-personal
 ### Container won't start
 
 ```bash
-# Rebuild from scratch
+# Clean orphaned containers
 aibox --clean
-aibox --build
+
+# Remove the container and let it be recreated
+docker rm -f aibox-default
+aibox
 ```
 
 ### SSH/Git issues

@@ -67,7 +67,6 @@ Usage: aibox [OPTIONS] [CLI_ARGS]
 OPTIONS:
     -t, --type TYPE        Choose CLI type: claude, codex, gemini (default: 'claude')
     -a, --account NAME     Use a specific account (default: 'default')
-    -b, --build            Build/rebuild the Docker image
     -s, --shell            Start an interactive shell instead of CLI
     -c, --command CMD      Run a specific command in the container
     -r, --remove           Remove the container after exit
@@ -93,9 +92,6 @@ EXAMPLES:
     # Run Gemini CLI directly
     aibox -t gemini [args]
 
-    # Build the image first
-    aibox --build
-
     # Clean orphan containers before running
     aibox --clean
 
@@ -118,7 +114,6 @@ EOF
 }
 
 # Parse command line arguments
-BUILD_IMAGE=false
 INTERACTIVE_SHELL=false
 REMOVE_AFTER=false
 CLEAN_ORPHANS=false
@@ -137,10 +132,6 @@ while [[ $# -gt 0 ]]; do
         -a|--account)
             AI_ACCOUNT="$2"
             shift 2
-            ;;
-        -b|--build)
-            BUILD_IMAGE=true
-            shift
             ;;
         -s|--shell)
             INTERACTIVE_SHELL=true
@@ -345,25 +336,11 @@ fi
 
 export AI_ENV_FILE
 
-# Build image if requested or if it doesn't exist
-if [ "$BUILD_IMAGE" = true ] || ! docker image inspect aibox:latest &> /dev/null; then
-    echo -e "${GREEN}Building aibox Docker image...${NC}"
-    echo -e "${YELLOW}This may take a few minutes. Showing build logs:${NC}"
-    echo ""
-    cd "$INSTALL_DIR"
-
-    # Build directly with docker build for better log visibility
-    docker build \
-        --progress=auto \
-        --build-arg USER=${CONTAINER_USER} \
-        --build-arg USER_UID=${USER_UID} \
-        --build-arg USER_GID=${USER_GID} \
-        -t aibox:latest \
-        -f Dockerfile \
-        .
-
-    echo ""
-    echo -e "${GREEN}✓ Build completed successfully${NC}"
+# Pull the latest image if it doesn't exist locally
+if ! docker image inspect ghcr.io/zzev/aibox:latest &> /dev/null; then
+    echo -e "${GREEN}📦 Pulling aibox Docker image from registry...${NC}"
+    docker pull ghcr.io/zzev/aibox:latest
+    echo -e "${GREEN}✓ Image pulled successfully${NC}"
 fi
 
 # Prepare the command to run

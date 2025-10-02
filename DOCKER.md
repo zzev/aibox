@@ -22,15 +22,15 @@ A secure Docker environment for running multiple AI CLIs (Claude Code, Codex, an
 ### 1. Initial Setup
 
 ```bash
-# Build the Docker image (required on first use)
-aibox --build
+# On first run, aibox automatically pulls the Docker image from ghcr.io
+# and creates a default profile at ~/.aibox/profiles/default.env
+aibox
 
-# The script will automatically create .aibox-env.default from .aibox-env.example if needed
-# Edit your environment file if needed
-nano .aibox-env.default
+# Edit your profile if needed
+nano ~/.aibox/profiles/default.env
 ```
 
-**Note**: The build process will automatically create the necessary directories and set up permissions.
+**Note**: The Docker image is automatically pulled from the GitHub Container Registry (ghcr.io/zzev/aibox) on first use.
 
 ### 2. Run AI CLI
 
@@ -139,7 +139,6 @@ aibox [OPTIONS] [CLI_ARGS]
 OPTIONS:
   -t, --type TYPE        Choose CLI type: claude, codex, gemini (default: claude)
   -a, --account NAME     Use a specific account (default: 'default')
-  -b, --build            Build/rebuild the Docker image
   -s, --shell            Start an interactive shell
   -c, --command CMD      Run a specific command
   -r, --remove           Remove container after exit
@@ -303,30 +302,31 @@ aibox -r
 
 ```bash
 # The container runs as ai user (UID 1001)
-# If you still have issues, rebuild the image:
-aibox --build
+# If you still have issues, try removing the container:
+docker rm -f aibox-default
 
-# Then run normally:
+# Then run again (it will pull fresh if needed):
 aibox
 ```
 
 ### Container won't start
 
 ```bash
-# Force rebuild the image (clean build)
-docker-compose build --no-cache
-
-# Or use the script:
-aibox --build
+# Clean orphan containers
+aibox --clean
 
 # Check Docker logs
 docker logs aibox-default
 docker logs aibox-work
 docker logs aibox-personal
 
-# Remove and rebuild if needed
+# Remove the container and let it be recreated
+docker rm -f aibox-default
 docker-compose down
-aibox --build
+aibox
+
+# Pull latest image if needed
+docker pull ghcr.io/zzev/aibox:latest
 ```
 
 ### Git operations failing
@@ -378,31 +378,7 @@ git config --global user.email "your.email@example.com"
 
 ### Customizing Container User and Working Directory
 
-You can customize the container username and working directory by setting environment variables:
-
-```bash
-# Using custom username
-export CONTAINER_USER=myuser
-export USER_UID=1001
-export USER_GID=1001
-
-# Build with custom settings
-aibox --build
-
-# Run with custom settings
-aibox
-```
-
-Or add them to your `.aibox-env.*` file:
-
-```bash
-# .aibox-env.custom
-AI_ACCOUNT=custom
-AI_CLI=claude
-CONTAINER_USER=developer
-USER_UID=1001
-USER_GID=1001
-```
+The container uses predefined user settings (ai:1001:1001). The image is pre-built and hosted on GitHub Container Registry, so custom builds are not typically needed.
 
 ### Custom Docker Socket (Docker-in-Docker)
 
@@ -441,7 +417,7 @@ aibox -r -a ci -t codex
 1. **Use accounts**: Separate work/personal/client projects
 2. **Choose the right CLI**: Use `-t` flag or `AI_CLI` environment variable
 3. **Environment consistency**: Keep `.aibox-env.*` files in `.gitignore`
-4. **Regular updates**: Rebuild image periodically for updates
+4. **Regular updates**: Pull latest image periodically with `docker pull ghcr.io/zzev/aibox:latest`
 5. **Monitor resources**: Check Docker stats for resource usage
 6. **Container management**: Uses docker-compose for simplified container lifecycle
 7. **SSH compatibility**: macOS SSH configs are automatically cleaned for Linux compatibility
