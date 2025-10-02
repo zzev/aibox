@@ -1,3 +1,6 @@
+# Dependencies
+node_modules/
+
 # Local environment files (optional, user-specific)
 .env.local
 .env

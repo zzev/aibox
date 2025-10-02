@@ -59,11 +59,12 @@ npm link
 cd /path/to/your/project
 
 # On first run, aibox will automatically pull the Docker image from ghcr.io
-# and create a default profile at ~/.aibox/profiles/default.env
+# and guide you through interactive profile setup
 aibox
 
-# Edit the profile if you need custom git settings or SSH keys
-nano ~/.aibox/profiles/default.env
+# Or explicitly configure a profile
+aibox -p default
+aibox --setup default
 ```
 
 ### Run
@@ -124,25 +125,39 @@ aibox -a work
 aibox -r
 ```
 
+### Profile Management
+
+Configure or reconfigure profiles interactively:
+
+```bash
+# Configure a profile (creates if new, reconfigures if exists)
+aibox -p default
+aibox --setup work
+
+# The interactive setup will guide you through:
+# - Git author name and email
+# - Preferred AI CLI (claude/codex/gemini)
+# - SSH key configuration
+# - GitHub CLI token (optional)
+```
+
 ### Multi-Account Setup
 
 Profiles are stored globally in `~/.aibox/profiles/` and work across all your projects:
 
 ```bash
-# Create work profile (aibox will create it automatically on first use)
-aibox -a work
-
-# Or create manually by copying the default
-cp ~/.aibox/profiles/default.env ~/.aibox/profiles/work.env
-nano ~/.aibox/profiles/work.env
+# Create work profile interactively
+aibox -p work
 
 # Create personal profile
-cp ~/.aibox/profiles/default.env ~/.aibox/profiles/personal.env
-nano ~/.aibox/profiles/personal.env
+aibox -p personal
 
 # Use different profiles
 aibox -a work -t codex
 aibox -a personal -t claude --dangerously-skip-permissions
+
+# Reconfigure an existing profile
+aibox -p work  # Will show current values as defaults
 ```
 
 **How Multi-Account Works:**

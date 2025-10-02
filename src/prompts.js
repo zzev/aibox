@@ -13,7 +13,14 @@ const ui = require('./ui');
  * @returns {Promise<Object>} Profile configuration
  */
 async function createProfile(account) {
-  console.log(ui.colors.warning(`Profile '${account}' not found. Let's set it up!\n`));
+  const profileExists = config.profileExists(account);
+  const existingProfile = profileExists ? config.loadProfile(account) : {};
+
+  if (profileExists) {
+    console.log(ui.colors.info(`Reconfiguring profile '${account}'\n`));
+  } else {
+    console.log(ui.colors.warning(`Profile '${account}' not found. Let's set it up!\n`));
+  }
 
   // Get Git config from host first
   const hostGit = config.getHostGitConfig();
@@ -21,13 +28,13 @@ async function createProfile(account) {
   // Git author name
   const gitName = await input({
     message: 'Git author name (for commits):',
-    default: hostGit.name || 'Your Name',
+    default: existingProfile.GIT_AUTHOR_NAME || hostGit.name || 'Your Name',
   });
 
   // Git author email
   const gitEmail = await input({
     message: 'Git author email:',
-    default: hostGit.email || 'your.email@example.com',
+    default: existingProfile.GIT_AUTHOR_EMAIL || hostGit.email || 'your.email@example.com',
   });
 
   // Preferred AI CLI
@@ -38,31 +45,46 @@ async function createProfile(account) {
       { name: 'codex', value: 'codex' },
       { name: 'gemini', value: 'gemini' },
     ],
-    default: 'claude',
+    default: existingProfile.AI_CLI || 'claude',
+  });
+
+  // CLI Configuration directories
+  const defaultClaudeDir = account === 'default' ? '~/.claude' : `~/.claude-${account}`;
+  const defaultCodexDir = account === 'default' ? '~/.codex' : `~/.codex-${account}`;
+
+  const claudeConfigDir = await input({
+    message: 'Claude Code config directory:',
+    default: existingProfile.CLAUDE_CONFIG_DIR || defaultClaudeDir,
+  });
+
+  const codexHome = await input({
+    message: 'Codex config directory:',
+    default: existingProfile.CODEX_HOME || defaultCodexDir,
   });
 
   // SSH Key configuration
   const sshPath = await input({
     message: 'SSH key directory:',
-    default: '~/.ssh',
+    default: existingProfile.SSH_KEY_PATH || '~/.ssh',
   });
 
   const sshFile = await input({
     message: 'SSH key file:',
-    default: 'id_rsa',
+    default: existingProfile.SSH_KEY_FILE || 'id_rsa',
   });
 
   // GitHub token (optional)
+  const hasExistingToken = existingProfile.GH_TOKEN && existingProfile.GH_TOKEN.length > 0;
   const wantsGhToken = await confirm({
     message: 'Do you want to add a GitHub CLI token?',
-    default: false,
+    default: hasExistingToken,
   });
 
   let ghToken = '';
   if (wantsGhToken) {
     ghToken = await input({
       message: 'GitHub CLI token:',
-      default: '',
+      default: existingProfile.GH_TOKEN || '',
     });
   }
 
@@ -72,6 +94,8 @@ async function createProfile(account) {
     gitName,
     gitEmail,
     aiCli,
+    claudeConfigDir,
+    codexHome,
     sshPath,
     sshFile,
     ghToken,
@@ -82,7 +106,11 @@ async function createProfile(account) {
   fs.writeFileSync(profilePath, profileContent, 'utf-8');
 
   console.log('');
-  ui.success(`Profile '${account}' created successfully!`);
+  if (profileExists) {
+    ui.success(`Profile '${account}' updated successfully!`);
+  } else {
+    ui.success(`Profile '${account}' created successfully!`);
+  }
   console.log(ui.colors.dim(`   Location: ${profilePath}`));
   console.log('');
 
@@ -95,12 +123,16 @@ async function createProfile(account) {
  * @returns {string} Profile file content
  */
 function buildProfileContent(options) {
-  const { account, gitName, gitEmail, aiCli, sshPath, sshFile, ghToken } = options;
+  const { account, gitName, gitEmail, aiCli, claudeConfigDir, codexHome, sshPath, sshFile, ghToken } = options;
 
   let content = `# aibox Profile: ${account}
 AI_ACCOUNT=${account}
 AI_CLI=${aiCli}
 CONTAINER_USER=ai
+
+# CLI Configuration Directories
+CLAUDE_CONFIG_DIR=${claudeConfigDir}
+CODEX_HOME=${codexHome}
 
 # Git Configuration
 GIT_AUTHOR_NAME=${gitName}

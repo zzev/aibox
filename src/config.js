@@ -138,11 +138,25 @@ function getCliConfigDirs(account) {
  * @param {string} account - Account name
  */
 function ensureCliConfigDirs(account) {
-  const dirs = getCliConfigDirs(account);
+  // Load profile to get custom directories if they exist
+  const profile = loadProfile(account);
+
+  let dirs;
+  if (profile.CLAUDE_CONFIG_DIR || profile.CODEX_HOME) {
+    // Use profile-specified directories
+    dirs = {
+      CLAUDE_CONFIG_DIR: profile.CLAUDE_CONFIG_DIR ? path.join(HOME, profile.CLAUDE_CONFIG_DIR.replace('~/', '')) : null,
+      CODEX_HOME: profile.CODEX_HOME ? path.join(HOME, profile.CODEX_HOME.replace('~/', '')) : null,
+    };
+  } else {
+    // Use default directories
+    dirs = getCliConfigDirs(account);
+  }
+
   const geminiDir = path.join(HOME, '.gemini');
 
   for (const dir of Object.values(dirs)) {
-    if (!fs.existsSync(dir)) {
+    if (dir && !fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
   }
@@ -279,11 +293,28 @@ function buildEnvironment(options) {
 
   // Load profile settings
   const profile = loadProfile(account);
+
+  // Copy all profile settings first
   Object.assign(env, profile);
 
-  // CLI config directories
-  const cliDirs = getCliConfigDirs(account);
-  Object.assign(env, cliDirs);
+  // Expand tilde in CLI config directories if they exist in profile
+  if (profile.CLAUDE_CONFIG_DIR) {
+    env.CLAUDE_CONFIG_DIR = profile.CLAUDE_CONFIG_DIR.startsWith('~/')
+      ? path.join(HOME, profile.CLAUDE_CONFIG_DIR.substring(2))
+      : profile.CLAUDE_CONFIG_DIR;
+  } else {
+    // Use default if not in profile
+    env.CLAUDE_CONFIG_DIR = getCliConfigDirs(account).CLAUDE_CONFIG_DIR;
+  }
+
+  if (profile.CODEX_HOME) {
+    env.CODEX_HOME = profile.CODEX_HOME.startsWith('~/')
+      ? path.join(HOME, profile.CODEX_HOME.substring(2))
+      : profile.CODEX_HOME;
+  } else {
+    // Use default if not in profile
+    env.CODEX_HOME = getCliConfigDirs(account).CODEX_HOME;
+  }
 
   // SSH config
   const sshConfig = getSSHConfig(profile.SSH_KEY_FILE);

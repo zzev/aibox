@@ -25,6 +25,7 @@ function createProgram(installDir) {
     .version(require('../package.json').version)
     .option('-t, --type <type>', 'Choose CLI type: claude, codex, gemini', 'claude')
     .option('-a, --account <name>', 'Use a specific account', 'default')
+    .option('-p, --setup <name>', 'Configure or reconfigure a profile')
     .option('-s, --shell', 'Start an interactive shell instead of CLI')
     .option('-c, --command <cmd>', 'Run a specific command in the container')
     .option('-r, --remove', 'Remove the container after exit')
@@ -63,14 +64,19 @@ EXAMPLES:
   # Use a specific account
   $ aibox -a work
 
+  # Configure or reconfigure a profile
+  $ aibox -p default
+  $ aibox --setup work
+
 ACCOUNTS:
   Accounts allow you to maintain separate CLI configurations.
   Each account has its own volume for storing configuration and auth.
 
   Profiles are stored in: ~/.aibox/profiles/
 
-  To create a new account:
-  $ aibox -a ACCOUNT_NAME    # Interactive setup on first use
+  To create or reconfigure a profile:
+  $ aibox -p ACCOUNT_NAME
+  $ aibox --setup ACCOUNT_NAME
 `);
 
   return program;
@@ -105,6 +111,14 @@ async function main(installDir, argv) {
 
   const options = program.opts();
   const cliArgs = program.args;
+
+  // Handle profile setup mode
+  if (options.setup) {
+    config.ensureConfigDirs();
+    config.ensureCliConfigDirs(options.setup);
+    await prompts.createProfile(options.setup);
+    process.exit(0);
+  }
 
   // Validate CLI type
   if (!VALID_CLI_TYPES.includes(options.type)) {
