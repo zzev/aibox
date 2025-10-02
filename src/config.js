@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
 const { execSync } = require('child_process');
 const TOML = require('@iarna/toml');
 
@@ -331,6 +332,16 @@ function getGlobalGitignore() {
 }
 
 /**
+ * Generate a short hash from project directory path
+ * @param {string} projectPath - Absolute path to project directory
+ * @returns {string} 8-character hash
+ */
+function getProjectHash(projectPath) {
+  const hash = crypto.createHash('md5').update(projectPath).digest('hex');
+  return hash.substring(0, 8);
+}
+
+/**
  * Build complete environment for docker-compose
  * @param {Object} options - Configuration options
  * @returns {Object} Complete environment object
@@ -401,6 +412,9 @@ function buildEnvironment(options) {
   // Profile path
   env.AI_ENV_FILE = getProfilePath(account);
 
+  // Project hash for unique container naming
+  env.AIBOX_PROJECT_HASH = getProjectHash(projectRoot);
+
   return env;
 }
 
@@ -423,5 +437,6 @@ module.exports = {
   listEnvFiles,
   getSSHConfig,
   getGlobalGitignore,
+  getProjectHash,
   buildEnvironment,
 };

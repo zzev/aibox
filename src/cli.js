@@ -132,7 +132,8 @@ async function main(installDir, argv) {
   const projectRoot = process.cwd();
   const composeFile = path.join(installDir, 'docker-compose.yml');
   const imageName = config.DEFAULTS.IMAGE_NAME;
-  const containerName = `aibox-${options.account}`;
+  const projectHash = config.getProjectHash(projectRoot);
+  const containerName = `aibox-${options.account}-${projectHash}`;
 
   // Ensure config directories
   config.ensureConfigDirs();

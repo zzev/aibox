@@ -1,7 +1,7 @@
 services:
   aibox:
     image: ghcr.io/zzev/aibox:latest
-    container_name: aibox-${AI_ACCOUNT:-default}
+    container_name: aibox-${AI_ACCOUNT:-default}-${AIBOX_PROJECT_HASH:-default}
 
     # Security settings
     security_opt:
