@@ -31,8 +31,8 @@ services:
       # SSH keys for git operations (read-only)
       - ${SSH_KEY_PATH:-~/.ssh}:/home/${CONTAINER_USER:-ai}/.ssh:ro
 
-      # Git global ignore file (read-only)
-      - ${HOME}/.gitignore_global:/home/${CONTAINER_USER:-ai}/.gitignore_global:ro
+      # Git global ignore file (optional, read-only)
+      - ${GITIGNORE_GLOBAL_PATH:-/dev/null}:/home/${CONTAINER_USER:-ai}/.gitignore_global:ro
 
       # ccstatusline configuration (optional)
       - ${HOME}/.config/ccstatusline:/home/${CONTAINER_USER:-ai}/.config/ccstatusline:ro

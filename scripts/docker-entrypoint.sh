@@ -19,6 +19,12 @@ fi
 git config --global --add safe.directory /home/${CONTAINER_USER}/code
 echo "Git configured: safe.directory = /home/${CONTAINER_USER}/code"
 
+# Configure global gitignore if available
+if [ -f "/home/${CONTAINER_USER}/.gitignore_global" ] && [ -s "/home/${CONTAINER_USER}/.gitignore_global" ]; then
+    git config --global core.excludesfile /home/${CONTAINER_USER}/.gitignore_global
+    echo "Git configured: core.excludesfile = /home/${CONTAINER_USER}/.gitignore_global"
+fi
+
 # Export GIT_COMMITTER variables to ensure they are used
 export GIT_COMMITTER_NAME="${GIT_COMMITTER_NAME:-${GIT_AUTHOR_NAME}}"
 export GIT_COMMITTER_EMAIL="${GIT_COMMITTER_EMAIL:-${GIT_AUTHOR_EMAIL}}"

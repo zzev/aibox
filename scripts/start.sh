@@ -225,6 +225,11 @@ elif [ -d "$HOME/.ssh" ]; then
     export SSH_KEY_PATH="$HOME/.ssh"
 fi
 
+# Global gitignore configuration (optional)
+if [ -f "$HOME/.gitignore_global" ]; then
+    export GITIGNORE_GLOBAL_PATH="$HOME/.gitignore_global"
+fi
+
 # Check for project environment file (optional)
 if [ -z "$ENV_FILE" ]; then
     # ENV_FILE not specified, try to find one (in order of priority)
