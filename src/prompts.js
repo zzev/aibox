@@ -63,15 +63,50 @@ async function createProfile(account) {
   });
 
   // SSH Key configuration
-  const sshPath = await input({
-    message: 'SSH key directory:',
-    default: existingProfile.SSH_KEY_PATH || '~/.ssh',
-  });
+  const availableKeys = config.listSSHKeys();
 
-  const sshFile = await input({
-    message: 'SSH key file:',
-    default: existingProfile.SSH_KEY_FILE || 'id_rsa',
-  });
+  let sshFile;
+  if (availableKeys.length === 0) {
+    console.log(ui.colors.warning('\n⚠️  No SSH keys found in ~/.ssh'));
+    console.log(ui.colors.dim('Please create an SSH key first:'));
+    console.log(ui.colors.dim('  ssh-keygen -t ed25519 -C "your_email@example.com"'));
+    console.log('');
+    ui.error('SSH key is required for git operations');
+  } else {
+    // Add "Other" option for manual entry
+    const choices = [
+      ...availableKeys.map(key => ({ name: key, value: key })),
+      { name: 'Other (manual entry)', value: '__other__' },
+    ];
+
+    const defaultKey = existingProfile.SSH_KEY_FILE || availableKeys[0];
+    const selectedKey = await select({
+      message: 'Select SSH key:',
+      choices,
+      default: defaultKey,
+    });
+
+    if (selectedKey === '__other__') {
+      sshFile = await input({
+        message: 'SSH key file name:',
+        default: existingProfile.SSH_KEY_FILE || 'id_rsa',
+        validate: (value) => {
+          if (!value || value.trim() === '') {
+            return 'SSH key file is required';
+          }
+          const keyPath = require('path').join(require('os').homedir(), '.ssh', value);
+          if (!require('fs').existsSync(keyPath)) {
+            return `SSH key file ${value} not found in ~/.ssh`;
+          }
+          return true;
+        },
+      });
+    } else {
+      sshFile = selectedKey;
+    }
+  }
+
+  const sshPath = '~/.ssh';
 
   // GitHub token (optional)
   const hasExistingToken = existingProfile.GH_TOKEN && existingProfile.GH_TOKEN.length > 0;
