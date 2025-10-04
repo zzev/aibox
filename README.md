@@ -181,7 +181,7 @@ To use multiple Gemini accounts, you would need to manually switch configuration
 
 ### aibox Profiles (`~/.aibox/profiles/`)
 
-Profiles are stored globally in `~/.aibox/profiles/` and contain your personal settings (git config, SSH keys, etc.)
+Profiles are stored globally in `~/.aibox/profiles/` and contain your personal settings (git config, SSH keys, Docker image, etc.)
 
 ### Project Environment - Optional
 

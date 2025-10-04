@@ -190,13 +190,10 @@ your-project/
 
 ## Environment Variables
 
-Key environment variables in profile files (`~/.aibox/profiles/*.env`):
+Key environment variables in profile files (`~/.aibox/profiles/*.toml`):
 
 - `AI_ACCOUNT`: Account identifier (default: default)
 - `AI_CLI`: CLI type to use (claude, codex, or gemini)
-- `CONTAINER_USER`: Container username (default: ai)
-- `USER_UID`: User ID for the container user (default: 1001)
-- `USER_GID`: Group ID for the container user (default: 1001)
 - `ENV_FILE`: Specify which .env file to use (auto-detects .env.local or .env if not specified)
 - `GIT_AUTHOR_NAME`: Git commit author name (automatically configured on container start)
 - `GIT_AUTHOR_EMAIL`: Git commit author email (automatically configured on container start)
@@ -256,7 +253,7 @@ SSH_KEY_FILE=id_rsa_work ENV_FILE=.env.production aibox
 
 ## Security Features
 
-1. **Non-root User**: All CLIs run as configurable user (default: `ai`, UID 1001) without any sudo privileges
+1. **Non-root User**: All CLIs run as `ai` user (UID 1001) without any sudo privileges
 2. **Capability Dropping**: Container drops all Linux capabilities except essential ones
 3. **No New Privileges**: Prevents privilege escalation
 4. **Read-only Mounts**: SSH keys mounted as read-only (config is filtered, not modified)
@@ -396,6 +393,19 @@ git config --global user.email "your.email@example.com"
 ### Customizing Container User and Working Directory
 
 The container uses predefined user settings (ai:1001:1001). The image is pre-built and hosted on GitHub Container Registry, so custom builds are not typically needed.
+
+### Custom Docker Image
+
+You can configure a custom Docker image in your profile if you've built your own version:
+
+Edit `~/.aibox/profiles/{account}.toml`:
+
+```toml
+[docker]
+image = "your-registry.com/your-image:tag"
+```
+
+By default, aibox uses `ghcr.io/zzev/aibox:latest` from the GitHub Container Registry.
 
 ### Custom Docker Socket (Docker-in-Docker)
 

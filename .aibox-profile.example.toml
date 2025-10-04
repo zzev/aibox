@@ -21,11 +21,10 @@ path = "~/.ssh"
 # Specific SSH key file (e.g., "id_rsa", "id_ed25519", "id_rsa_work")
 key_file = "id_ed25519"
 
-[container]
-# Container user settings (avoid conflict with system USER variable)
-user = "ai"
-uid = 1001
-gid = 1001
+[docker]
+# Docker image to use (default: ghcr.io/zzev/aibox:latest)
+# You can specify a custom image if you've built your own
+# image = "ghcr.io/zzev/aibox:latest"
 
 [directories]
 # CLI-specific configuration directories
