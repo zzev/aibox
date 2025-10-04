@@ -176,11 +176,6 @@ function buildProfileContent(options) {
       path: sshPath,
       key_file: sshFile,
     },
-    container: {
-      user: 'ai',
-      uid: 1001,
-      gid: 1001,
-    },
     directories: {
       claude: claudeConfigDir,
       codex: codexHome,
