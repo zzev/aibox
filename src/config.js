@@ -89,10 +89,8 @@ function parseTOMLFile(filePath) {
       if (parsed.ssh.path) env.SSH_KEY_PATH = parsed.ssh.path;
     }
 
-    if (parsed.container) {
-      if (parsed.container.user) env.CONTAINER_USER = parsed.container.user;
-      if (parsed.container.uid) env.USER_UID = String(parsed.container.uid);
-      if (parsed.container.gid) env.USER_GID = String(parsed.container.gid);
+    if (parsed.docker) {
+      if (parsed.docker.image) env.DOCKER_IMAGE = parsed.docker.image;
     }
 
     if (parsed.github) {
@@ -414,6 +412,11 @@ function buildEnvironment(options) {
 
   // Project hash for unique container naming
   env.AIBOX_PROJECT_HASH = getProjectHash(projectRoot);
+
+  // Docker image (use profile setting or default)
+  if (!env.DOCKER_IMAGE) {
+    env.DOCKER_IMAGE = DEFAULTS.IMAGE_NAME;
+  }
 
   return env;
 }

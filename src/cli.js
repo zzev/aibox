@@ -131,7 +131,6 @@ async function main(installDir, argv) {
   // Paths
   const projectRoot = process.cwd();
   const composeFile = path.join(installDir, 'docker-compose.yml');
-  const imageName = config.DEFAULTS.IMAGE_NAME;
   const projectHash = config.getProjectHash(projectRoot);
   const containerName = `aibox-${options.account}-${projectHash}`;
 
@@ -148,6 +147,8 @@ async function main(installDir, argv) {
     cli: options.type,
     projectRoot,
   });
+
+  const imageName = env.DOCKER_IMAGE;
 
   // Check SSH configuration
   const sshConfig = config.getSSHConfig(env.SSH_KEY_FILE);
