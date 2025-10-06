@@ -59,9 +59,10 @@ RUN mkdir -p /home/${USER}/.claude /home/${USER}/.codex /home/${USER}/.gemini &&
     chown -R ${USER}:${USER} /home/${USER}/.claude /home/${USER}/.codex /home/${USER}/.gemini && \
     chmod 755 /home/${USER}/.claude /home/${USER}/.codex /home/${USER}/.gemini
 
-# Copy the entrypoint script
+# Copy the entrypoint and git setup scripts
 COPY scripts/docker-entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY scripts/git-setup.sh /usr/local/bin/git-setup.sh
+RUN chmod +x /entrypoint.sh && chmod +x /usr/local/bin/git-setup.sh
 
 
 # Switch to non-root user

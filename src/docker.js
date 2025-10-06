@@ -177,9 +177,12 @@ function startContainer(composeFile, env) {
  */
 function execInContainer(containerName, command, interactive = true) {
   return new Promise((resolve, reject) => {
+    // Wrap command with git setup script
+    const wrappedCommand = `source /usr/local/bin/git-setup.sh 2>/dev/null || true; ${command}`;
+
     const args = ['exec'];
     if (interactive) args.push('-it');
-    args.push(containerName, 'bash', '-c', command);
+    args.push(containerName, 'bash', '-c', wrappedCommand);
 
     const child = spawn('docker', args, {
       stdio: 'inherit',
@@ -204,6 +207,9 @@ function execInContainer(containerName, command, interactive = true) {
  */
 function runTemporaryContainer(composeFile, command, env) {
   return new Promise((resolve, reject) => {
+    // Wrap command with git setup script
+    const wrappedCommand = `source /usr/local/bin/git-setup.sh 2>/dev/null || true; ${command}`;
+
     const child = spawn('docker-compose', [
       '-f', composeFile,
       'run',
@@ -212,7 +218,7 @@ function runTemporaryContainer(composeFile, command, env) {
       'aibox',
       'bash',
       '-c',
-      command
+      wrappedCommand
     ], {
       stdio: 'inherit',
       env: { ...process.env, ...env },
