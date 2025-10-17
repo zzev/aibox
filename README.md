@@ -115,6 +115,10 @@ aibox -t gemini chat "Hello"
 # Clean orphan containers
 aibox --clean
 
+# Check for Docker image updates
+aibox --update
+aibox -a work --update
+
 # Attach to running container
 aibox --attach
 

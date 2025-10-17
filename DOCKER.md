@@ -59,6 +59,9 @@ aibox -t gemini chat "Hello"
 # Clean orphan containers before running
 aibox --clean
 
+# Check for Docker image updates
+aibox --update
+
 # Attach to existing running container
 aibox --attach
 ```
@@ -149,11 +152,14 @@ aibox [OPTIONS] [CLI_ARGS]
 OPTIONS:
   -t, --type TYPE        Choose CLI type: claude, codex, gemini (default: claude)
   -a, --account NAME     Use a specific account (default: 'default')
+  -p, --setup NAME       Configure or reconfigure a profile
   -s, --shell            Start an interactive shell
   -c, --command CMD      Run a specific command
   -r, --remove           Remove container after exit
+  --yolo                 Run CLI in YOLO mode (skip all permissions)
   --clean                Clean orphan containers before running
   --attach               Attach to existing container if running
+  --update               Check for Docker image updates
   -h, --help             Show help message
 ```
 
@@ -339,7 +345,9 @@ docker rm -f aibox-default
 docker-compose down
 aibox
 
-# Pull latest image if needed
+# Check for updates and pull latest image if needed
+aibox --update
+# Or manually pull
 docker pull ghcr.io/zzev/aibox:latest
 ```
 
@@ -443,7 +451,7 @@ aibox -r -a ci -t codex
 
 1. **Use accounts**: Separate work/personal/client projects
 2. **Choose the right CLI**: Use `-t` flag to select between claude, codex, or gemini
-3. **Regular updates**: Pull latest image periodically with `docker pull ghcr.io/zzev/aibox:latest`
+3. **Regular updates**: Check for updates with `aibox --update` or manually pull with `docker pull ghcr.io/zzev/aibox:latest`
 4. **Profile management**: Use `aibox -p ACCOUNT_NAME` to configure profiles
 5. **Monitor resources**: Check Docker stats for resource usage
 6. **Container management**: Uses docker-compose for simplified container lifecycle
