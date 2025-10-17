@@ -258,6 +258,89 @@ function attachToContainer(containerName) {
 }
 
 /**
+ * Get local image digest
+ * @param {string} imageName - Docker image name
+ * @returns {string|null} Image digest or null if not found
+ */
+function getLocalImageDigest(imageName) {
+  try {
+    const result = execSync(`docker image inspect ${imageName} --format '{{index .RepoDigests 0}}'`, {
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'ignore']
+    }).trim();
+
+    if (!result || result === '<no value>') {
+      return null;
+    }
+
+    // Extract digest from format: repository@sha256:...
+    const match = result.match(/@(sha256:[a-f0-9]+)/);
+    return match ? match[1] : null;
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
+ * Get remote image digest
+ * @param {string} imageName - Docker image name
+ * @returns {string|null} Image digest or null if not found
+ */
+function getRemoteImageDigest(imageName) {
+  try {
+    const result = execSync(`docker manifest inspect ${imageName} --verbose`, {
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'ignore']
+    });
+
+    const manifest = JSON.parse(result);
+
+    // Handle manifest list (multi-arch images)
+    if (manifest.manifests) {
+      // Get current platform
+      const platform = process.platform === 'darwin' ? 'linux' : process.platform;
+      const arch = process.arch === 'x64' ? 'amd64' : process.arch;
+
+      // Find matching platform manifest
+      const platformManifest = manifest.manifests.find(m =>
+        m.platform && m.platform.os === platform && m.platform.architecture === arch
+      );
+
+      if (platformManifest && platformManifest.digest) {
+        return platformManifest.digest;
+      }
+    }
+
+    // Handle single manifest
+    if (manifest.Descriptor && manifest.Descriptor.digest) {
+      return manifest.Descriptor.digest;
+    }
+
+    return null;
+  } catch (error) {
+    return null;
+  }
+}
+
+/**
+ * Check if image update is available
+ * @param {string} imageName - Docker image name
+ * @returns {Object} Update info {available: boolean, localDigest: string, remoteDigest: string}
+ */
+function checkImageUpdate(imageName) {
+  const localDigest = getLocalImageDigest(imageName);
+  const remoteDigest = getRemoteImageDigest(imageName);
+
+  return {
+    available: localDigest && remoteDigest && localDigest !== remoteDigest,
+    localDigest,
+    remoteDigest,
+    hasLocal: !!localDigest,
+    hasRemote: !!remoteDigest,
+  };
+}
+
+/**
  * Validate Docker environment
  * Checks if Docker is installed and running
  */
@@ -284,4 +367,7 @@ module.exports = {
   runTemporaryContainer,
   attachToContainer,
   validateDocker,
+  getLocalImageDigest,
+  getRemoteImageDigest,
+  checkImageUpdate,
 };

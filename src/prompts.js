@@ -210,8 +210,25 @@ async function ensureProfile(account) {
   return config.loadProfile(account);
 }
 
+/**
+ * Confirm image update
+ * @param {string} imageName - Docker image name
+ * @returns {Promise<boolean>} True if user confirms update
+ */
+async function confirmUpdate(imageName) {
+  console.log('');
+  console.log(ui.colors.warning(`${ui.icons.package} Update available for ${imageName}`));
+  console.log('');
+
+  return await confirm({
+    message: 'Do you want to download the updated image?',
+    default: true,
+  });
+}
+
 module.exports = {
   createProfile,
   ensureProfile,
   buildProfileContent,
+  confirmUpdate,
 };

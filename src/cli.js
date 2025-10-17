@@ -32,6 +32,7 @@ function createProgram(installDir) {
     .option('--yolo', 'Run CLI in YOLO mode (skip all permissions)')
     .option('--clean', 'Clean orphan containers before running')
     .option('--attach', 'Attach to existing container if running')
+    .option('--update', 'Check for Docker image updates')
     .allowUnknownOption()
     .addHelpText('after', `
 
@@ -67,6 +68,10 @@ EXAMPLES:
   # Configure or reconfigure a profile
   $ aibox -p default
   $ aibox --setup work
+
+  # Check for Docker image updates
+  $ aibox --update
+  $ aibox -a work --update
 
 ACCOUNTS:
   Accounts allow you to maintain separate CLI configurations.
@@ -120,13 +125,53 @@ async function main(installDir, argv) {
     process.exit(0);
   }
 
+  // Validate Docker
+  docker.validateDocker();
+
+  // Handle update mode
+  if (options.update) {
+    config.ensureConfigDirs();
+
+    // Load profile to get configured image
+    const profile = config.loadProfile(options.account);
+    const imageName = profile.DOCKER_IMAGE || config.DEFAULTS.IMAGE_NAME;
+
+    ui.info(`${ui.icons.package} Checking for updates: ${imageName}`);
+
+    const spin = ui.spinner('Checking remote registry...').start();
+    const updateInfo = docker.checkImageUpdate(imageName);
+    spin.stop();
+
+    if (!updateInfo.hasRemote) {
+      ui.error('Failed to check remote image.\nPlease verify your internet connection and Docker is running.');
+    }
+
+    if (!updateInfo.hasLocal) {
+      ui.warning('Image not found locally. Use aibox without --update to pull it.');
+      process.exit(0);
+    }
+
+    if (updateInfo.available) {
+      const shouldUpdate = await prompts.confirmUpdate(imageName);
+
+      if (shouldUpdate) {
+        await docker.pullImage(imageName);
+        ui.success('Image updated successfully!');
+      } else {
+        ui.info('Update cancelled.');
+      }
+    } else {
+      ui.success('You already have the latest version!');
+      console.log(ui.colors.dim(`   Current: ${updateInfo.localDigest}`));
+    }
+
+    process.exit(0);
+  }
+
   // Validate CLI type
   if (!VALID_CLI_TYPES.includes(options.type)) {
     ui.error(`Invalid CLI type '${options.type}'\nValid types are: ${VALID_CLI_TYPES.join(', ')}`);
   }
-
-  // Validate Docker
-  docker.validateDocker();
 
   // Paths
   const projectRoot = process.cwd();
