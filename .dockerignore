@@ -1,0 +1,38 @@
+# Git
+.git
+.github
+.gitignore
+
+# Node modules and npm files (not needed in build context)
+node_modules
+npm-debug.log
+package-lock.json
+
+# Documentation
+*.md
+!README.md
+
+# Configuration examples
+*.example.*
+
+# IDE and system files
+.DS_Store
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Testing and CI
+.travis.yml
+.gitlab-ci.yml
+test
+tests
+*.test.js
+*.spec.js
+
+# Other
+.npmignore
+.claude
+LICENSE
+docker-compose.yml

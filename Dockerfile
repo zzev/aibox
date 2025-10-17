@@ -8,7 +8,7 @@ ARG USER=ai
 ARG USER_UID=1001
 ARG USER_GID=1001
 
-# Install dependencies
+# Install dependencies and npm packages in a single layer
 RUN apk add --no-cache \
     bash \
     git \
@@ -16,48 +16,32 @@ RUN apk add --no-cache \
     keychain \
     ca-certificates \
     gnupg \
-    python3 \
-    py3-pip \
-    postgresql-client \
     netcat-openbsd \
     iputils \
     curl \
     vim \
-    github-cli
+    github-cli && \
+    npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli ccstatusline && \
+    npm cache clean --force
 
-# Install Claude Code CLI, Codex CLI, Gemini CLI, and ccstatusline globally
-RUN npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli ccstatusline
-
-# Create non-root user
+# Create non-root user and all necessary directories in a single layer
 RUN addgroup -g ${USER_GID} ${USER} && \
     adduser -D -u ${USER_UID} -G ${USER} -s /bin/bash ${USER} && \
-    mkdir -p /home/${USER}/.config && \
-    mkdir -p /home/${USER}/.config/ccstatusline && \
-    mkdir -p /home/${USER}/.claude && \
-    mkdir -p /home/${USER}/.codex && \
-    mkdir -p /home/${USER}/.gemini && \
-    mkdir -p /home/${USER}/.ssh && \
-    mkdir -p /home/${USER}/.npm && \
-    mkdir -p /home/${USER}/.npm-global && \
-    mkdir -p /home/${USER}/code
+    mkdir -p /ai-configs \
+             /home/${USER}/.config/ccstatusline \
+             /home/${USER}/.claude \
+             /home/${USER}/.codex \
+             /home/${USER}/.gemini \
+             /home/${USER}/.ssh \
+             /home/${USER}/.npm \
+             /home/${USER}/.npm-global \
+             /home/${USER}/code && \
+    chown -R ${USER}:${USER} /home/${USER} /ai-configs && \
+    chmod -R 755 /home/${USER} && \
+    chmod 755 /ai-configs
 
 # Set up working directory in user's home
 WORKDIR /home/${USER}/code
-
-# Create directories for multiple account configurations
-RUN mkdir -p /ai-configs && \
-    chmod 755 /ai-configs
-
-# Set ownership and permissions for user directories
-RUN chown -R ${USER}:${USER} /home/${USER} && \
-    chmod -R 755 /home/${USER} && \
-    chown -R ${USER}:${USER} /ai-configs && \
-    chmod 755 /ai-configs
-
-# Pre-create the config directories with correct permissions
-RUN mkdir -p /home/${USER}/.claude /home/${USER}/.codex /home/${USER}/.gemini && \
-    chown -R ${USER}:${USER} /home/${USER}/.claude /home/${USER}/.codex /home/${USER}/.gemini && \
-    chmod 755 /home/${USER}/.claude /home/${USER}/.codex /home/${USER}/.gemini
 
 # Copy the entrypoint and git setup scripts
 COPY scripts/docker-entrypoint.sh /entrypoint.sh
