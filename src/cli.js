@@ -274,15 +274,31 @@ async function main(installDir, argv) {
     ui.success('Container removed');
   } else {
     // Persistent container
-    await docker.startContainer(composeFile, env);
+    const isRunning = docker.containerRunning(containerName);
+    const exists = docker.containerExists(containerName);
 
-    if (isInteractive) {
-      console.log(ui.colors.info('Starting interactive shell...'));
+    if (!exists) {
+      // Container doesn't exist, create it
+      await docker.startContainer(composeFile, env);
+      if (isInteractive) {
+        console.log(ui.colors.info('Starting interactive shell...'));
+      } else {
+        console.log(ui.colors.info(`Executing: ${command}`));
+      }
+    } else if (!isRunning) {
+      // Container exists but is stopped, start it
+      console.log(ui.colors.info('Starting stopped container...'));
+      await docker.startContainer(composeFile, env);
     } else {
-      console.log(ui.colors.info(`Executing: ${command}`));
+      // Container is already running, attach to it
+      if (isInteractive) {
+        console.log(ui.colors.info('Attaching to running container...'));
+      } else {
+        console.log(ui.colors.info(`Executing in running container: ${command}`));
+      }
     }
 
-    exitCode = await docker.execInContainer(containerName, command, true);
+    exitCode = await docker.execInContainer(containerName, command, isInteractive);
   }
 
   process.exit(exitCode);
