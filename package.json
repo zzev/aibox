@@ -1,6 +1,6 @@
 {
   "name": "@zzev/aibox",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Secure, isolated Docker environment for running multiple AI CLIs (Claude Code, Codex, Gemini) with multi-account support",
   "main": "bin/aibox.js",
   "bin": {
