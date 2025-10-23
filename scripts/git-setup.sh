@@ -28,9 +28,7 @@ export GIT_COMMITTER_EMAIL="${GIT_COMMITTER_EMAIL:-${GIT_AUTHOR_EMAIL}}"
 # Configure SSH if specific key is requested
 if [ -n "${SSH_KEY_FILE}" ]; then
     export GIT_SSH_COMMAND="ssh -i /home/${CONTAINER_USER}/.ssh/${SSH_KEY_FILE} -o IdentitiesOnly=yes"
-fi
-
-# Fix macOS-specific SSH config options if SSH wrapper exists
-if [ -f "/tmp/ssh-wrapper" ]; then
-    export GIT_SSH="/tmp/ssh-wrapper"
+# Otherwise, use cleaned SSH config if it exists
+elif [ -f "/tmp/ssh_config_clean" ] && [ -s "/tmp/ssh_config_clean" ]; then
+    export GIT_SSH_COMMAND="ssh -F /tmp/ssh_config_clean"
 fi
