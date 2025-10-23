@@ -162,7 +162,6 @@ async function main(installDir, argv) {
       }
     } else {
       ui.success('You already have the latest version!');
-      console.log(ui.colors.dim(`   Current: ${updateInfo.localDigest}`));
     }
 
     process.exit(0);

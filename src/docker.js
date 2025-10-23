@@ -288,32 +288,17 @@ function getLocalImageDigest(imageName) {
  */
 function getRemoteImageDigest(imageName) {
   try {
-    const result = execSync(`docker manifest inspect ${imageName} --verbose`, {
+    // Use buildx imagetools which works better with registries
+    const result = execSync(`docker buildx imagetools inspect ${imageName} --format '{{json .}}'`, {
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'ignore']
     });
 
     const manifest = JSON.parse(result);
 
-    // Handle manifest list (multi-arch images)
-    if (manifest.manifests) {
-      // Get current platform
-      const platform = process.platform === 'darwin' ? 'linux' : process.platform;
-      const arch = process.arch === 'x64' ? 'amd64' : process.arch;
-
-      // Find matching platform manifest
-      const platformManifest = manifest.manifests.find(m =>
-        m.platform && m.platform.os === platform && m.platform.architecture === arch
-      );
-
-      if (platformManifest && platformManifest.digest) {
-        return platformManifest.digest;
-      }
-    }
-
-    // Handle single manifest
-    if (manifest.Descriptor && manifest.Descriptor.digest) {
-      return manifest.Descriptor.digest;
+    // Check for manifest digest
+    if (manifest.manifest && manifest.manifest.digest) {
+      return manifest.manifest.digest;
     }
 
     return null;
