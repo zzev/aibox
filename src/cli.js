@@ -230,7 +230,14 @@ async function main(installDir, argv) {
   } else if (options.yolo) {
     // YOLO mode
     const yoloFlags = getYoloFlags(options.type);
-    command = `${options.type} ${yoloFlags} ${cliArgs.join(' ')}`.trim();
+    if (cliArgs.length > 0) {
+      // YOLO mode with arguments
+      command = `${options.type} ${yoloFlags} ${cliArgs.join(' ')}`;
+    } else {
+      // YOLO mode without arguments - start interactive CLI
+      command = `${options.type} ${yoloFlags}`;
+      isInteractive = true;
+    }
   } else if (cliArgs.length > 0) {
     // CLI with arguments
     command = `${options.type} ${cliArgs.join(' ')}`;
