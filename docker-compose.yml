@@ -115,4 +115,5 @@ volumes:
 # Network for isolation
 networks:
   aibox-network:
+    name: aibox-${AI_ACCOUNT:-default}-${AIBOX_PROJECT_HASH:-default}-network
     driver: bridge
