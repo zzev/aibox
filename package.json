@@ -15,7 +15,8 @@
     ".aibox-profile.example.toml"
   ],
   "scripts": {
-    "test": "echo \"No tests yet\" && exit 0"
+    "test": "echo \"No tests yet\" && exit 0",
+    "release": "release-it"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.5",
@@ -50,5 +51,9 @@
   "bugs": {
     "url": "https://github.com/zzev/aibox/issues"
   },
-  "homepage": "https://github.com/zzev/aibox#readme"
+  "homepage": "https://github.com/zzev/aibox#readme",
+  "devDependencies": {
+    "@release-it/conventional-changelog": "^10.0.4",
+    "release-it": "^19.2.4"
+  }
 }
