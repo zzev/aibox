@@ -55,7 +55,6 @@ USER ${USER}
 # Set environment variables
 ENV PATH="/home/${USER}/.npm-global/bin:${PATH}"
 ENV USER=${USER}
-ENV GIT_SSH=/tmp/ssh-wrapper
 
 # Set entrypoint
 ENTRYPOINT ["/entrypoint.sh"]

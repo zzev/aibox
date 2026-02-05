@@ -326,6 +326,37 @@ function checkImageUpdate(imageName) {
 }
 
 /**
+ * Check if SSH agent is available
+ * @returns {Object} SSH agent status {available: boolean, socket: string}
+ */
+function checkSSHAgent() {
+  const sshAuthSock = process.env.SSH_AUTH_SOCK;
+
+  if (!sshAuthSock) {
+    return { available: false, socket: null, reason: 'SSH_AUTH_SOCK not set' };
+  }
+
+  try {
+    // Check if the socket file exists
+    const fs = require('fs');
+    if (!fs.existsSync(sshAuthSock)) {
+      return { available: false, socket: sshAuthSock, reason: 'Socket file does not exist' };
+    }
+
+    // Check if SSH agent is responding
+    execSync('ssh-add -l', { stdio: 'ignore', env: process.env });
+    return { available: true, socket: sshAuthSock };
+  } catch (error) {
+    // ssh-add -l returns exit code 1 if agent has no keys, 2 if agent is not available
+    if (error.status === 1) {
+      // Agent is running but has no keys
+      return { available: true, socket: sshAuthSock, hasKeys: false };
+    }
+    return { available: false, socket: sshAuthSock, reason: 'SSH agent not responding' };
+  }
+}
+
+/**
  * Validate Docker environment
  * Checks if Docker is installed and running
  */
@@ -355,4 +386,5 @@ module.exports = {
   getLocalImageDigest,
   getRemoteImageDigest,
   checkImageUpdate,
+  checkSSHAgent,
 };

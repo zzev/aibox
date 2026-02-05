@@ -202,6 +202,21 @@ async function main(installDir, argv) {
     ui.listSSHKeys(availableKeys);
   }
 
+  // Check SSH agent availability
+  const sshAgent = docker.checkSSHAgent();
+  if (!sshAgent.available) {
+    ui.warning('SSH agent not available - password-protected keys will not work');
+    console.log(ui.colors.dim('To enable SSH agent:'));
+    console.log(ui.colors.dim('  1. Check if ssh-agent is running: ssh-add -l'));
+    console.log(ui.colors.dim('  2. If not running, start it: eval $(ssh-agent)'));
+    console.log(ui.colors.dim('  3. Add your key: ssh-add ~/.ssh/id_rsa'));
+    console.log('');
+  } else if (sshAgent.hasKeys === false) {
+    ui.warning('SSH agent is running but no keys are loaded');
+    console.log(ui.colors.dim('Add your key with: ssh-add ~/.ssh/id_rsa'));
+    console.log('');
+  }
+
   // Pull image if needed
   if (!docker.imageExists(imageName)) {
     await docker.pullImage(imageName);

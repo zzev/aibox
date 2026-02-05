@@ -27,8 +27,11 @@ export GIT_COMMITTER_EMAIL="${GIT_COMMITTER_EMAIL:-${GIT_AUTHOR_EMAIL}}"
 
 # Configure SSH if specific key is requested
 if [ -n "${SSH_KEY_FILE}" ]; then
-    export GIT_SSH_COMMAND="ssh -i /home/${CONTAINER_USER}/.ssh/${SSH_KEY_FILE} -o IdentitiesOnly=yes"
+    export GIT_SSH_COMMAND="ssh -F /dev/null -i /home/${CONTAINER_USER}/.ssh/${SSH_KEY_FILE} -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null"
 # Otherwise, use cleaned SSH config if it exists
 elif [ -f "/tmp/ssh_config_clean" ] && [ -s "/tmp/ssh_config_clean" ]; then
-    export GIT_SSH_COMMAND="ssh -F /tmp/ssh_config_clean"
+    export GIT_SSH_COMMAND="ssh -F /tmp/ssh_config_clean -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null"
+else
+    # Fallback: use no config to avoid macOS-specific options
+    export GIT_SSH_COMMAND="ssh -F /dev/null -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null"
 fi
