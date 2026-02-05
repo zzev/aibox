@@ -9,6 +9,7 @@ ARG USER_UID=1001
 ARG USER_GID=1001
 
 # Install dependencies and npm packages in a single layer
+# Note: python3, make, g++ are needed for node-gyp to build native modules (tree-sitter for gemini-cli)
 RUN apk add --no-cache \
     bash \
     git \
@@ -20,9 +21,13 @@ RUN apk add --no-cache \
     iputils \
     curl \
     vim \
-    github-cli && \
+    github-cli \
+    python3 \
+    make \
+    g++ && \
     npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli ccstatusline && \
-    npm cache clean --force
+    npm cache clean --force && \
+    apk del python3 make g++
 
 # Create non-root user and all necessary directories in a single layer
 RUN addgroup -g ${USER_GID} ${USER} && \
