@@ -320,6 +320,7 @@ async function main(installDir, argv) {
       }
     }
 
+    docker.fixSSHSocketPermissions(containerName);
     exitCode = await docker.execInContainer(containerName, command, isInteractive);
   }
 

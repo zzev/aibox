@@ -51,7 +51,9 @@ WORKDIR /home/${USER}/code
 # Copy the entrypoint and git setup scripts
 COPY scripts/docker-entrypoint.sh /entrypoint.sh
 COPY scripts/git-setup.sh /usr/local/bin/git-setup.sh
-RUN chmod +x /entrypoint.sh && chmod +x /usr/local/bin/git-setup.sh
+RUN chmod +x /entrypoint.sh && chmod +x /usr/local/bin/git-setup.sh && \
+    touch /home/${USER}/.git-ssh-env.sh && \
+    chown ${USER}:${USER} /home/${USER}/.git-ssh-env.sh
 
 
 # Switch to non-root user

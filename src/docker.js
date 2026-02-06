@@ -169,6 +169,23 @@ function startContainer(composeFile, env) {
 }
 
 /**
+ * Fix SSH agent socket permissions inside container (Docker Desktop)
+ * The socket at /run/host-services/ssh-auth.sock is owned by root:root
+ * with 660 permissions, so the non-root container user cannot access it.
+ * @param {string} containerName - Container name
+ */
+function fixSSHSocketPermissions(containerName) {
+  try {
+    execSync(
+      `docker exec -u root ${containerName} chmod 666 /run/host-services/ssh-auth.sock`,
+      { stdio: 'ignore' }
+    );
+  } catch {
+    // Socket may not exist (Linux, or Docker Desktop without SSH agent)
+  }
+}
+
+/**
  * Execute command in container
  * @param {string} containerName - Container name
  * @param {string} command - Command to execute
@@ -379,6 +396,7 @@ module.exports = {
   pullImage,
   cleanOrphans,
   startContainer,
+  fixSSHSocketPermissions,
   execInContainer,
   runTemporaryContainer,
   attachToContainer,
