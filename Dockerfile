@@ -8,7 +8,7 @@ ARG USER=ai
 ARG USER_UID=1001
 ARG USER_GID=1001
 
-# Install dependencies and npm packages in a single layer
+# Install system dependencies and npm packages
 # Note: python3, make, g++ are needed for node-gyp to build native modules (tree-sitter for gemini-cli)
 RUN apk add --no-cache \
     bash \
@@ -22,10 +22,11 @@ RUN apk add --no-cache \
     curl \
     vim \
     github-cli \
+    ripgrep \
     python3 \
     make \
     g++ && \
-    npm install -g @anthropic-ai/claude-code @openai/codex @google/gemini-cli ccstatusline && \
+    npm install -g @openai/codex @google/gemini-cli ccstatusline && \
     npm cache clean --force && \
     apk del python3 make g++
 
@@ -60,8 +61,12 @@ RUN chmod +x /entrypoint.sh && chmod +x /usr/local/bin/git-setup.sh && \
 USER ${USER}
 
 # Set environment variables
-ENV PATH="/home/${USER}/.npm-global/bin:${PATH}"
+ENV PATH="/home/${USER}/.local/bin:/home/${USER}/.npm-global/bin:${PATH}"
 ENV USER=${USER}
+ENV USE_BUILTIN_RIPGREP=0
+
+# Install Claude Code via native installer
+RUN curl -fsSL https://claude.ai/install.sh | bash
 
 # Set entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
