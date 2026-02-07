@@ -9,7 +9,8 @@
   "github": {
     "release": true,
     "releaseName": "v${version}",
-    "skipChecks": true
+    "skipChecks": true,
+    "host": "github.com"
   },
   "npm": {
     "publish": true
