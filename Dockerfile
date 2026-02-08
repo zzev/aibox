@@ -28,7 +28,7 @@ RUN apk add --no-cache \
     g++ && \
     npm install -g @openai/codex @google/gemini-cli ccstatusline && \
     npm cache clean --force && \
-    apk del python3 make g++
+    apk del make g++
 
 # Create non-root user and all necessary directories in a single layer
 RUN addgroup -g ${USER_GID} ${USER} && \
